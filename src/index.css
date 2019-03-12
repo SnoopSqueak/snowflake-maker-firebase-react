@@ -180,6 +180,7 @@ code {
 		font-family: sans-serif;
 		font-size:9px;
 		text-align:right;
+    transform-style: preserve-3d;
 	}
 	#sharePanel {
 		position:relative;
@@ -251,13 +252,14 @@ code {
     	box-shadow: none;
 		outline:none;
 	}
-	#btnSave {
+	.save {
 		position:relative;
 		right:0px;
 		width:158px;
+    height: 25px;
 		border: solid 1px;
 		padding:2px;
-		margin-right:5px;
+    margin: 5px;
     	border-color: #297e44 #297e44 #1a6e35;
     	color: #fff;
 		//border-radius: 5px;
@@ -274,7 +276,7 @@ code {
     	-moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 #8ac29c;
     	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 #8ac29c;
 	}
-	#btnSave:active {
+	.save:active {
     	border-color: #297E44;
     	background: #4FA36A;
     	filter: none;

@@ -27,54 +27,5 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-
-    <!-- The following HTML was borrowed (for educational purposes) from: http://rectangleworld.com/PaperSnowflake/ -->
-    <div id="container">
-    	<div id="displayCanvasHolder">
-        	<canvas id="displayCanvas" width="440px" height="440px">Your browser does not support HTML5 canvas.</canvas>
-            <canvas id="displayBackgroundCanvas" width="440px" height="440px"></canvas>
-        </div>
-        <div id="boardCanvasHolder">
-        	<canvas id="polygonLayer" width="250px" height="440px"></canvas>
-        	<canvas id="boardCanvas" width="250px" height="440px"></canvas>
-            <canvas id="boardBackgroundCanvas" width="250px" height="440px"></canvas>
-        </div>
-        <div id="buttonPanel">
-            <div id="titleText" style="background: rgb(88, 107, 135);">paper snowflake maker</div>
-            <div id="urlText" style="background: rgb(133, 160, 205);"><a href="http://rectangleworld.com">by<br>RectangleWorld</a></div>
-            <div id="urlText2" style="background: rgb(88, 107, 135);"><a href="http://rectangleworld.com/blog/about" target="_blank">about</a></div>
-            <div id="buttonPanelContent">
-            <div id="colorButtonsLabel">choose a<br>background:</div>
-            	<div id="colorButtonPanel"></div>
-                    <ul>
-                    <li><input type="button" class="button1" id="btnAdd" value="add" title="Click to commit the currently drawn polygon (you can also just start drawing a new one)."></li>
-                    <li><input type="button" class="button1_inactive" id="btnUndo" value="undo" title="undo"></li>
-                    <li><input type="button" class="button1" id="btnReset" value="reset" title="start over"></li>
-                    <li><input type="button" class="button1" id="btnMakeSnowflake" value="make snowflake!" style="font-weight:bold; white-space:normal;" title="See your snowflake!"></li>
-                    <li><label title="Creates a folded paper appearance."><input type="checkbox" class="checkbox1" id="cbShading" checked="">shading on</label></li>
-                    <li><label title="Causes the snowflake to be redrawn every time you change the triangle."><input type="checkbox" class="checkbox1" id="cbAutoUpdate">auto update</label></li>
-                    </ul>
-            </div>
-        </div>
-    </div>
-    <div id="container2">
-    <div id="infoPanel">
-    	<div id="saveButtonsHolder">
-            	<div id="savePanel">
-                	<span style="margin-right:5px; color:#666; font-size:10px">Save the image →</span><button id="btnSave">Save image to your computer</button>
-            	</div>
-        	<div id="clear" style="clear:both"></div>
-    	</div><div id="instructionsText">
-        To "cut" the paper away, draw polygons (closed shapes)
-        representing scissor cuts over the triangle in the drawing
-        board to the right. Draw a polygon by clicking on the board to
-        create vertices, and close the polygon by clicking on the first
-        vertex. After a polygon is closed, it can be edited by dragging
-        vertices. To finalize a polygon, press the "add" button, or
-        simply start drawing a new polygon.
-        </div>
-    </div>
-    </div>
-    <!-- End of borrowed HTML <3 -->
   </body>
 </html>
