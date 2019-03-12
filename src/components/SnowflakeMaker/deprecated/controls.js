@@ -245,18 +245,18 @@ function canvasApp() {
 	}(document, 'script', 'facebook-jssdk'));*/
 
 
-
-	var displayCanvas = document.getElementById("displayCanvas");
-	var displayContext = displayCanvas.getContext("2d");
-	var displayBackgroundCanvas = document.getElementById("displayBackgroundCanvas");
-	var displayBackgroundContext = displayBackgroundCanvas.getContext("2d");
-
-	var boardCanvas = document.getElementById("boardCanvas");
-	var boardContext = boardCanvas.getContext("2d");
-	var boardBackgroundCanvas = document.getElementById("boardBackgroundCanvas");
-	var boardBackgroundContext = boardBackgroundCanvas.getContext("2d");
-	var polygonLayer = document.getElementById("polygonLayer");
-	var polygonLayerContext = polygonLayer.getContext("2d");
+  //
+	// var displayCanvas = document.getElementById("displayCanvas");
+	// var displayContext = displayCanvas.getContext("2d");
+	// var displayBackgroundCanvas = document.getElementById("displayBackgroundCanvas");
+	// var displayBackgroundContext = displayBackgroundCanvas.getContext("2d");
+  //
+	// var boardCanvas = document.getElementById("boardCanvas");
+	// var boardContext = boardCanvas.getContext("2d");
+	// var boardBackgroundCanvas = document.getElementById("boardBackgroundCanvas");
+	// var boardBackgroundContext = boardBackgroundCanvas.getContext("2d");
+	// var polygonLayer = document.getElementById("polygonLayer");
+	// var polygonLayerContext = polygonLayer.getContext("2d");
 
 	var displayWidth = displayCanvas.width;
 	var displayHeight = displayCanvas.height;
@@ -264,36 +264,36 @@ function canvasApp() {
 	var boardHeight = boardCanvas.height;
 
   //off screen canvas used only when exporting image
-	var exportCanvas = document.createElement('canvas');
-	exportCanvas.width = displayWidth;
-	exportCanvas.height = displayHeight;
-	var exportCanvasContext = exportCanvas.getContext("2d");
+	// var exportCanvas = document.createElement('canvas');
+	// exportCanvas.width = displayWidth;
+	// exportCanvas.height = displayHeight;
+	// var exportCanvasContext = exportCanvas.getContext("2d");
 
-	//off screen canvas
-	var snowflakeShapeCanvas = document.createElement('canvas');
-	snowflakeShapeCanvas.width = displayWidth;
-	snowflakeShapeCanvas.height = displayHeight;
-	var snowflakeShapeContext = snowflakeShapeCanvas.getContext("2d");
+	// //off screen canvas
+	// var snowflakeShapeCanvas = document.createElement('canvas');
+	// snowflakeShapeCanvas.width = displayWidth;
+	// snowflakeShapeCanvas.height = displayHeight;
+	// var snowflakeShapeContext = snowflakeShapeCanvas.getContext("2d");
+  //
+	// var bufferCanvas = document.createElement('canvas');
+	// bufferCanvas.width = displayWidth;
+	// bufferCanvas.height = displayHeight;
+	// var bufferContext = bufferCanvas.getContext("2d");
 
-	var bufferCanvas = document.createElement('canvas');
-	bufferCanvas.width = displayWidth;
-	bufferCanvas.height = displayHeight;
-	var bufferContext = bufferCanvas.getContext("2d");
-
-	//off screen canvas
-	var paperShadingCanvas = document.createElement('canvas');
-	paperShadingCanvas.width = displayWidth;
-	paperShadingCanvas.height = displayHeight;
-	var paperShadingContext = paperShadingCanvas.getContext("2d");
+	// //off screen canvas
+	// var paperShadingCanvas = document.createElement('canvas');
+	// paperShadingCanvas.width = displayWidth;
+	// paperShadingCanvas.height = displayHeight;
+	// var paperShadingContext = paperShadingCanvas.getContext("2d");
 
 	//For testing:
 	//document.body.appendChild(paperShadingCanvas);
 
 	//off screen canvas
-	var shadowCanvas = document.createElement('canvas');
-	shadowCanvas.width = displayWidth;
-	shadowCanvas.height = displayHeight;
-	var shadowContext = shadowCanvas.getContext("2d");
+	// var shadowCanvas = document.createElement('canvas');
+	// shadowCanvas.width = displayWidth;
+	// shadowCanvas.height = displayHeight;
+	// var shadowContext = shadowCanvas.getContext("2d");
 
 	//gui elements
 	var btnMakeSnowflake = document.getElementById("btnMakeSnowflake");
@@ -343,87 +343,87 @@ function canvasApp() {
 	// (e.g., background-image: -moz-linear-gradient(...);
 	//        background-image:   -o-linear-gradient(...); etc).
 	//
-	function getCssValuePrefix(name, value) {
-		var prefixes = ['', '-o-', '-ms-', '-moz-', '-webkit-'];
-
-		// Create a temporary DOM object for testing
-		var dom = document.createElement('div');
-
-		for (var i = 0; i < prefixes.length; i++) {
-			// Attempt to set the style
-			dom.style[name] = prefixes[i] + value;
-
-			// Detect if the style was successfully set
-			if (dom.style[name]) {
-				return prefixes[i];
-			}
-			dom.style[name] = '';   // Reset the style
-		}
-	}
-
-	var gradientPrefix = getCssValuePrefix('backgroundImage', 'linear-gradient(left, #fff, #fff)');
-	//trace("gradientPrefix " + gradientPrefix);
+	// function getCssValuePrefix(name, value) {
+	// 	var prefixes = ['', '-o-', '-ms-', '-moz-', '-webkit-'];
+  //
+	// 	// Create a temporary DOM object for testing
+	// 	var dom = document.createElement('div');
+  //
+	// 	for (var i = 0; i < prefixes.length; i++) {
+	// 		// Attempt to set the style
+	// 		dom.style[name] = prefixes[i] + value;
+  //
+	// 		// Detect if the style was successfully set
+	// 		if (dom.style[name]) {
+	// 			return prefixes[i];
+	// 		}
+	// 		dom.style[name] = '';   // Reset the style
+	// 	}
+	// }
+  //
+	// var gradientPrefix = getCssValuePrefix('backgroundImage', 'linear-gradient(left, #fff, #fff)');
+	// //trace("gradientPrefix " + gradientPrefix);
 
 	init();
 
 
 
 	function init() {
-		triangleHyp = 400.0;
-		snowflakeRadius = 200.0;
-
-		bgColors = [
-			{
-				name: "blue",
-				start: "#586B87",
-				end: "#85A0CD"
-			},
-			{
-				name: "green",
-				end: "#4ab34e",
-				start: "#267028"
-			},
-			{
-				name: "red",
-				end: "#ff2F2F",
-				start: "#b00000",
-				textBG: "#ef1f1f"
-			},
-			{
-				name: "purple",
-				end: "#ab6cb3",
-				start: "#57305c"
-			},
-			{
-				name: "gold",
-				end: "#f4cF57",
-				start: "#a47F07",
-				textBG: "#d4aF37"
-			},
-			{
-				name: "gray",
-				end: "#e0e0e0",
-				start: "#707070",
-				textBG: "#CCCCCC"
-			}
-		];
-
-		drawGradientBackgrounds();
-		setBgColor(0);
-		setUpColorButtons();
-
+		// triangleHyp = 400.0;
+		// snowflakeRadius = 200.0;
+    //
+		// bgColors = [
+		// 	{
+		// 		name: "blue",
+		// 		start: "#586B87",
+		// 		end: "#85A0CD"
+		// 	},
+		// 	{
+		// 		name: "green",
+		// 		end: "#4ab34e",
+		// 		start: "#267028"
+		// 	},
+		// 	{
+		// 		name: "red",
+		// 		end: "#ff2F2F",
+		// 		start: "#b00000",
+		// 		textBG: "#ef1f1f"
+		// 	},
+		// 	{
+		// 		name: "purple",
+		// 		end: "#ab6cb3",
+		// 		start: "#57305c"
+		// 	},
+		// 	{
+		// 		name: "gold",
+		// 		end: "#f4cF57",
+		// 		start: "#a47F07",
+		// 		textBG: "#d4aF37"
+		// 	},
+		// 	{
+		// 		name: "gray",
+		// 		end: "#e0e0e0",
+		// 		start: "#707070",
+		// 		textBG: "#CCCCCC"
+		// 	}
+		// ];
+    //
+		// drawGradientBackgrounds();
+		// setBgColor(0);
+		// setUpColorButtons();
+    //
 
 		numUndoLevels = 10;
-		DOT_RAD = 6.5;
-		FIRST_DOT_RAD = 10;
-		dotColor = "rgba(255,0,0,0.5)";
-		firstDotColor = "rgba(16,220,0,0.5)";
-		polygonLineColor = "rgba(0,0,0,0.75)";
+		// DOT_RAD = 6.5;
+		// FIRST_DOT_RAD = 10;
+		// dotColor = "rgba(255,0,0,0.5)";
+		// firstDotColor = "rgba(16,220,0,0.5)";
+		// polygonLineColor = "rgba(0,0,0,0.75)";
 
 		//urlColor = "#FFFFFF";
 
-		drawShading();
-		drawTriangle();
+		// drawShading();
+		// drawTriangle();
 		//drawSnowflake();
 
 		shadedSnowflakeCurrent = false;
@@ -443,7 +443,7 @@ function canvasApp() {
 		btnReset.addEventListener("click", btnResetHandler, false);
 		btnAdd.addEventListener("click", btnAddHandler, false);
 		cbShading.addEventListener("click", cbShadingListener, false);
-		polygonLayer.addEventListener("mousedown", mouseDownHandler, false);
+		//polygonLayer.addEventListener("mousedown", mouseDownHandler, false);
 		btnSave.addEventListener("click", btnSaveListener, false);
     btnLogIn.addEventListener("click", btnLogInListener, false);
 		//btnShare.addEventListener("click", btnShareHandler, false);
@@ -454,71 +454,71 @@ function canvasApp() {
 		//boardColor2 = bgColors[index].end;
 		paintBackgroundColors(index);
 	}
-
-	function setUpColorButtons() {
-		var colorButtonPanel = document.getElementById("colorButtonPanel");
-		for (var i = 0; i < bgColors.length; i++) {
-			var colorButton = document.createElement("input");
-			//Assign different attributes to the element.
-			//type="button" class="button1" id="btnUndo" value="undo" title="undo"
-			colorButton.setAttribute("type", "button");
-			colorButton.setAttribute("value", "");
-			colorButton.setAttribute("title", bgColors[i].name);
-			colorButton.index = i;
-			colorButton.className = "colorButton";
-
-			//colorButton.style.background = bgColors[i].end;
-			//colorButton.style.border = "2px solid " + bgColors[i].start;
-
-			colorButton.style.backgroundImage = gradientPrefix + "linear-gradient(" +bgColors[i].start+ ", " +bgColors[i].end+ ")";
-			if (!colorButton.style.backgroundImage) {
-				trace("gradient button background doesn't work, setting flat color.");
-				colorButton.style.background = bgColors[i].end;
-			}
-			// for IE 6 - 9:
-			colorButton.style.filter = "progid:DXImageTransform.Microsoft.gradient(startColorStr='" +bgColors[i].start+ "', EndColorStr='" +bgColors[i].end+ "')";
-
-
-			colorButton.addEventListener("click", colorButtonClickHandler, false);
-
-			colorButtonPanel.appendChild(colorButton);
-		}
-	}
-
-	function drawGradientBackgrounds() {
-		gradientBackgroundCanvases = [];
-		for (var i = 0; i < bgColors.length; i++) {
-			var gradCanvas = document.createElement('canvas');
-			gradCanvas.width = displayWidth;
-			gradCanvas.height = displayHeight;
-			var gradContext = gradCanvas.getContext("2d");
-			var dgrad = new DitheredLinearGradient(-20,-20,-20+460*Math.sin(3*Math.PI/8),-20+460*Math.sin(3*Math.PI/8));
-			var col = hexToRgb(bgColors[i].start);
-			var col2 = hexToRgb(bgColors[i].end);
-			dgrad.addColorStop(0,col2.r,col2.g,col2.b);
-			dgrad.addColorStop(1,col.r,col.g,col.b);
-			dgrad.fillRect(gradContext,0,0,displayWidth,displayHeight);
-			gradientBackgroundCanvases.push(gradCanvas);
-		}
-	}
-
-	function colorButtonClickHandler(evt) {
-		//alert(this.index);
-		paintBackgroundColors(this.index);
-	}
-
-	function paintBackgroundColors(index) {
-		drawBoardBackground(index);
-		drawDisplayBackground(index);
-		titleText.style.background = bgColors[index].start;
-		if (!bgColors[index].textBG) {
-			urlText.style.background = bgColors[index].end;
-		}
-		else {
-			urlText.style.background = bgColors[index].textBG;
-		}
-		urlText2.style.background = bgColors[index].start;
-	}
+  //
+	// function setUpColorButtons() {
+	// 	var colorButtonPanel = document.getElementById("colorButtonPanel");
+	// 	for (var i = 0; i < bgColors.length; i++) {
+	// 		var colorButton = document.createElement("input");
+	// 		//Assign different attributes to the element.
+	// 		//type="button" class="button1" id="btnUndo" value="undo" title="undo"
+	// 		colorButton.setAttribute("type", "button");
+	// 		colorButton.setAttribute("value", "");
+	// 		colorButton.setAttribute("title", bgColors[i].name);
+	// 		colorButton.index = i;
+	// 		colorButton.className = "colorButton";
+  //
+	// 		//colorButton.style.background = bgColors[i].end;
+	// 		//colorButton.style.border = "2px solid " + bgColors[i].start;
+  //
+	// 		colorButton.style.backgroundImage = gradientPrefix + "linear-gradient(" +bgColors[i].start+ ", " +bgColors[i].end+ ")";
+	// 		if (!colorButton.style.backgroundImage) {
+	// 			trace("gradient button background doesn't work, setting flat color.");
+	// 			colorButton.style.background = bgColors[i].end;
+	// 		}
+	// 		// for IE 6 - 9:
+	// 		colorButton.style.filter = "progid:DXImageTransform.Microsoft.gradient(startColorStr='" +bgColors[i].start+ "', EndColorStr='" +bgColors[i].end+ "')";
+  //
+  //
+	// 		colorButton.addEventListener("click", colorButtonClickHandler, false);
+  //
+	// 		colorButtonPanel.appendChild(colorButton);
+	// 	}
+	// }
+  // //
+	// function drawGradientBackgrounds() {
+	// 	gradientBackgroundCanvases = [];
+	// 	for (var i = 0; i < bgColors.length; i++) {
+	// 		var gradCanvas = document.createElement('canvas');
+	// 		gradCanvas.width = displayWidth;
+	// 		gradCanvas.height = displayHeight;
+	// 		var gradContext = gradCanvas.getContext("2d");
+	// 		var dgrad = new DitheredLinearGradient(-20,-20,-20+460*Math.sin(3*Math.PI/8),-20+460*Math.sin(3*Math.PI/8));
+	// 		var col = hexToRgb(bgColors[i].start);
+	// 		var col2 = hexToRgb(bgColors[i].end);
+	// 		dgrad.addColorStop(0,col2.r,col2.g,col2.b);
+	// 		dgrad.addColorStop(1,col.r,col.g,col.b);
+	// 		dgrad.fillRect(gradContext,0,0,displayWidth,displayHeight);
+	// 		gradientBackgroundCanvases.push(gradCanvas);
+	// 	}
+	// }
+  //
+	// function colorButtonClickHandler(evt) {
+	// 	//alert(this.index);
+	// 	paintBackgroundColors(this.index);
+	// }
+  // //
+	// function paintBackgroundColors(index) {
+	// 	drawBoardBackground(index);
+	// 	drawDisplayBackground(index);
+	// 	titleText.style.background = bgColors[index].start;
+	// 	if (!bgColors[index].textBG) {
+	// 		urlText.style.background = bgColors[index].end;
+	// 	}
+	// 	else {
+	// 		urlText.style.background = bgColors[index].textBG;
+	// 	}
+	// 	urlText2.style.background = bgColors[index].start;
+	// }
 
 	// function drawBoardBackground(index) {
 	// 	boardBackgroundContext.fillStyle = bgColors[index].start;
@@ -542,145 +542,145 @@ function canvasApp() {
 		btnUndo.className = "button1";
 	}
 
-	function mouseDownHandler(evt) {
-		var numDots = dots.length;
-		var i;
-		var found;
-    var newDot;
-		getMousePosition(evt);
+	// function mouseDownHandler(evt) {
+	// 	var numDots = dots.length;
+	// 	var i;
+	// 	var found;
+  //   var newDot;
+	// 	getMousePosition(evt);
+  //
+	// 	if (!drawing) {
+	// 		//check if mouse down was on an existing dot, and if so set drag behavior
+	// 		i = 0;
+	// 		found = false;
+	// 		while ((!found) && (i < numDots)) {
+	// 			 if (dots[i].mouseOverMe()) {
+	// 				 found = true;
+	// 				 dotToDragIndex = i;
+	// 			 }
+	// 			 i++;
+	// 		}
+	// 		if (found) {
+	// 			//
+	// 			window.addEventListener("mousemove", mouseMoveWhileDragging, false);
+	// 			window.addEventListener("mouseup", endDrag, false);
+	// 		}
+	// 		//otherwise start drawing a new polygon
+	// 		else {
+	// 			dots = [];
+	// 			drawing = true;
+	// 			newDot = new Dot(mouseX, mouseY, firstDotColor);
+	// 			newDot.rad = FIRST_DOT_RAD;
+	// 			dots.push(newDot);
+	// 			updatePolygonDrawing();
+	// 			window.addEventListener("mousemove", mouseMoveWhileDrawing, false);
+	// 		}
+	// 	}
+	// 	else {
+	// 		//check if mouse down was on first dot
+	// 		if (dots[0].mouseOverMe() && (dots.length > 2)) {
+	// 			closeShape();
+	// 		}
+	// 		else {
+	// 			newDot = new Dot(mouseX, mouseY, dotColor);
+	// 			dots.push(newDot);
+	// 			updatePolygonDrawing();
+	// 			window.addEventListener("mousemove", mouseMoveWhileDrawing, false);
+	// 		}
+	// 	}
+	// }
+  //
+	// function mouseMoveWhileDragging(evt) {
+	// 	evt.stopPropagation();
+  //       evt.preventDefault();
+	// 	getMousePosition(evt);
+	// 	dots[dotToDragIndex].x = mouseX;
+	// 	dots[dotToDragIndex].y = mouseY;
+	// 	drawClosedPolygon();
+	// }
 
-		if (!drawing) {
-			//check if mouse down was on an existing dot, and if so set drag behavior
-			i = 0;
-			found = false;
-			while ((!found) && (i < numDots)) {
-				 if (dots[i].mouseOverMe()) {
-					 found = true;
-					 dotToDragIndex = i;
-				 }
-				 i++;
-			}
-			if (found) {
-				//
-				window.addEventListener("mousemove", mouseMoveWhileDragging, false);
-				window.addEventListener("mouseup", endDrag, false);
-			}
-			//otherwise start drawing a new polygon
-			else {
-				dots = [];
-				drawing = true;
-				newDot = new Dot(mouseX, mouseY, firstDotColor);
-				newDot.rad = FIRST_DOT_RAD;
-				dots.push(newDot);
-				updatePolygonDrawing();
-				window.addEventListener("mousemove", mouseMoveWhileDrawing, false);
-			}
-		}
-		else {
-			//check if mouse down was on first dot
-			if (dots[0].mouseOverMe() && (dots.length > 2)) {
-				closeShape();
-			}
-			else {
-				newDot = new Dot(mouseX, mouseY, dotColor);
-				dots.push(newDot);
-				updatePolygonDrawing();
-				window.addEventListener("mousemove", mouseMoveWhileDrawing, false);
-			}
-		}
-	}
+	// function endDrag(evt) {
+	// 	//go back to previous state before redrawing polygon
+	// 	undo(false);
+	// 	drawPolygonToBoard();
+	// 	addCurrentBoardToHistory();
+  //
+	// 	if (cbAutoUpdate.checked) {
+	// 		drawSnowflake();
+	// 	}
+  //
+	// 	window.removeEventListener("mousemove", mouseMoveWhileDragging, false);
+	// 	window.removeEventListener("mouseup", endDrag, false);
+	// }
+  //
+	// function updatePolygonDrawing() {
+	// 	var i;
+	// 	var len;
+  //
+	// 	polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
+  //
+	// 	len = dots.length;
+	// 	//lines
+	// 	polygonLayerContext.strokeStyle = polygonLineColor;
+	// 	polygonLayerContext.beginPath();
+	// 	polygonLayerContext.moveTo(dots[0].x, dots[0].y);
+	// 	for (i = 1; i < len; i++) {
+	// 		polygonLayerContext.lineTo(dots[i].x, dots[i].y);
+	// 	}
+	// 	if (dots[0].mouseOverMe() && (dots.length > 1)) {
+	// 		//snap
+	// 		polygonLayerContext.lineTo(dots[0].x, dots[0].y);
+	// 		polygonLayerContext.stroke();
+	// 		dots[0].highlight();
+	// 	}
+	// 	else {
+	// 		polygonLayerContext.lineTo(mouseX, mouseY);
+	// 		polygonLayerContext.stroke();
+	// 	}
+  //
+	// 	//dots
+	// 	for (i = 0; i < len; i++) {
+	// 		dots[i].drawMe();
+	// 	}
+	// }
 
-	function mouseMoveWhileDragging(evt) {
-		evt.stopPropagation();
-        evt.preventDefault();
-		getMousePosition(evt);
-		dots[dotToDragIndex].x = mouseX;
-		dots[dotToDragIndex].y = mouseY;
-		drawClosedPolygon();
-	}
+	// function drawClosedPolygon() {
+	// 	var i;
+	// 	var len;
+  //
+	// 	polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
+  //
+	// 	len = dots.length;
+	// 	//lines
+	// 	polygonLayerContext.strokeStyle = polygonLineColor;
+	// 	polygonLayerContext.beginPath();
+	// 	polygonLayerContext.moveTo(dots[0].x, dots[0].y);
+	// 	for (i = 1; i < len; i++) {
+	// 		polygonLayerContext.lineTo(dots[i].x, dots[i].y);
+	// 	}
+	// 	polygonLayerContext.lineTo(dots[0].x, dots[0].y);
+	// 	polygonLayerContext.stroke();
+  //
+	// 	//dots
+	// 	for (i = 0; i < len; i++) {
+	// 		dots[i].drawMe();
+	// 	}
+	// }
 
-	function endDrag(evt) {
-		//go back to previous state before redrawing polygon
-		undo(false);
-		drawPolygonToBoard();
-		addCurrentBoardToHistory();
-
-		if (cbAutoUpdate.checked) {
-			drawSnowflake();
-		}
-
-		window.removeEventListener("mousemove", mouseMoveWhileDragging, false);
-		window.removeEventListener("mouseup", endDrag, false);
-	}
-
-	function updatePolygonDrawing() {
-		var i;
-		var len;
-
-		polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
-
-		len = dots.length;
-		//lines
-		polygonLayerContext.strokeStyle = polygonLineColor;
-		polygonLayerContext.beginPath();
-		polygonLayerContext.moveTo(dots[0].x, dots[0].y);
-		for (i = 1; i < len; i++) {
-			polygonLayerContext.lineTo(dots[i].x, dots[i].y);
-		}
-		if (dots[0].mouseOverMe() && (dots.length > 1)) {
-			//snap
-			polygonLayerContext.lineTo(dots[0].x, dots[0].y);
-			polygonLayerContext.stroke();
-			dots[0].highlight();
-		}
-		else {
-			polygonLayerContext.lineTo(mouseX, mouseY);
-			polygonLayerContext.stroke();
-		}
-
-		//dots
-		for (i = 0; i < len; i++) {
-			dots[i].drawMe();
-		}
-	}
-
-	function drawClosedPolygon() {
-		var i;
-		var len;
-
-		polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
-
-		len = dots.length;
-		//lines
-		polygonLayerContext.strokeStyle = polygonLineColor;
-		polygonLayerContext.beginPath();
-		polygonLayerContext.moveTo(dots[0].x, dots[0].y);
-		for (i = 1; i < len; i++) {
-			polygonLayerContext.lineTo(dots[i].x, dots[i].y);
-		}
-		polygonLayerContext.lineTo(dots[0].x, dots[0].y);
-		polygonLayerContext.stroke();
-
-		//dots
-		for (i = 0; i < len; i++) {
-			dots[i].drawMe();
-		}
-	}
-
-	function closeShape() {
-		drawing = false;
-		window.removeEventListener("mousemove", mouseMoveWhileDrawing, false);
-		drawClosedPolygon();
-		//draw polygon to board layer
-		drawPolygonToBoard();
-		//store history
-		addCurrentBoardToHistory();
-
-		shadedSnowflakeCurrent = false;
-		if (cbAutoUpdate.checked) {
-			drawSnowflake();
-		}
-	}
+	// function closeShape() {
+	// 	drawing = false;
+	// 	window.removeEventListener("mousemove", mouseMoveWhileDrawing, false);
+	// 	drawClosedPolygon();
+	// 	//draw polygon to board layer
+	// 	drawPolygonToBoard();
+	// 	//store history
+	// 	addCurrentBoardToHistory();
+  //
+	// 	shadedSnowflakeCurrent = false;
+	// 	if (cbAutoUpdate.checked) {
+	// 		drawSnowflake();
+	// 	}
+	// }
 
 	function cancelDrawing() {
 		polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
@@ -693,38 +693,38 @@ function canvasApp() {
 		cancelDrawing();
 	}
 
-	function addCurrentBoardToHistory() {
-		setUndoButtonActive();
-
-		var historyCanvas = document.createElement('canvas');
-		historyCanvas.width = boardWidth;
-		historyCanvas.height = boardHeight;
-		var historyContext = historyCanvas.getContext("2d");
-
-		//copy current to history
-		historyContext.drawImage(boardCanvas,
-								0, 0, boardWidth, boardHeight,
-								0, 0, boardWidth, boardHeight);
-
-		//put in history list, shorten history if necessary
-		if (history.first == null) {
-			history.first = historyContext;
-			history.last = historyContext;
-			historyLength = 1;
-		}
-		else {
-			historyContext.next = history.first;
-			history.first.prev = historyContext;
-			history.first = historyContext;
-			historyLength++;
-		}
-		if (historyLength > numUndoLevels + 1) {
-			history.last.canvas = null;
-			history.last.prev.next = null; //(will it be garbage collected?)
-			history.last = history.last.prev;
-			historyLength = numUndoLevels + 1;
-		}
-	}
+	// function addCurrentBoardToHistory() {
+	// 	setUndoButtonActive();
+  //
+	// 	var historyCanvas = document.createElement('canvas');
+	// 	historyCanvas.width = boardWidth;
+	// 	historyCanvas.height = boardHeight;
+	// 	var historyContext = historyCanvas.getContext("2d");
+  //
+	// 	//copy current to history
+	// 	historyContext.drawImage(boardCanvas,
+	// 							0, 0, boardWidth, boardHeight,
+	// 							0, 0, boardWidth, boardHeight);
+  //
+	// 	//put in history list, shorten history if necessary
+	// 	if (history.first == null) {
+	// 		history.first = historyContext;
+	// 		history.last = historyContext;
+	// 		historyLength = 1;
+	// 	}
+	// 	else {
+	// 		historyContext.next = history.first;
+	// 		history.first.prev = historyContext;
+	// 		history.first = historyContext;
+	// 		historyLength++;
+	// 	}
+	// 	if (historyLength > numUndoLevels + 1) {
+	// 		history.last.canvas = null;
+	// 		history.last.prev.next = null; //(will it be garbage collected?)
+	// 		history.last = history.last.prev;
+	// 		historyLength = numUndoLevels + 1;
+	// 	}
+	// }
 
 	function btnUndoHandler(evt) {
 		undo(true);
@@ -802,79 +802,79 @@ function canvasApp() {
 		}
 		setUndoButtonInactive();
 	}
+  //
+	// function drawPolygonToBoard() {
+	// 	var i;
+	// 	var len = dots.length;
+	// 	boardContext.fillStyle = "#000000";
+	// 	boardContext.beginPath();
+	// 	boardContext.moveTo(dots[0].x, dots[0].y);
+	// 	for (i = 1; i < len; i++) {
+	// 		boardContext.lineTo(dots[i].x, dots[i].y);
+	// 	}
+	// 	boardContext.lineTo(dots[0].x, dots[0].y);
+	// 	boardContext.fill();
+	// 	redToAlphaFilter(boardContext);
+	// }
 
-	function drawPolygonToBoard() {
-		var i;
-		var len = dots.length;
-		boardContext.fillStyle = "#000000";
-		boardContext.beginPath();
-		boardContext.moveTo(dots[0].x, dots[0].y);
-		for (i = 1; i < len; i++) {
-			boardContext.lineTo(dots[i].x, dots[i].y);
-		}
-		boardContext.lineTo(dots[0].x, dots[0].y);
-		boardContext.fill();
-		redToAlphaFilter(boardContext);
-	}
+	// function mouseMoveWhileDrawing(evt) {
+	// 	evt.stopPropagation();
+  //       evt.preventDefault();
+	// 	getMousePosition(evt);
+	// 	updatePolygonDrawing();
+	// }
 
-	function mouseMoveWhileDrawing(evt) {
-		evt.stopPropagation();
-        evt.preventDefault();
-		getMousePosition(evt);
-		updatePolygonDrawing();
-	}
+	// function getMousePosition(evt) {
+	// 	var bRect = boardCanvas.getBoundingClientRect();
+	// 	mouseX = (evt.clientX - bRect.left)*(boardCanvas.width/bRect.width);
+	// 	mouseY = (evt.clientY - bRect.top)*(boardCanvas.height/bRect.height);
+	// }
 
-	function getMousePosition(evt) {
-		var bRect = boardCanvas.getBoundingClientRect();
-		mouseX = (evt.clientX - bRect.left)*(boardCanvas.width/bRect.width);
-		mouseY = (evt.clientY - bRect.top)*(boardCanvas.height/bRect.height);
-	}
+	// function Dot(_x,_y, _col) {
+	// 	this.x = _x;
+	// 	this.y = _y;
+	// 	this.rad = DOT_RAD;
+	// 	this.color = _col;
+	// }
+  //
+	// Dot.prototype.drawMe = function() {
+	// 	polygonLayerContext.fillStyle = this.color;
+	// 	polygonLayerContext.beginPath();
+	// 	polygonLayerContext.arc(this.x, this.y, this.rad, 0, 2*Math.PI, false);
+	// 	polygonLayerContext.closePath();
+	// 	polygonLayerContext.fill();
+	// }
+  //
+	// Dot.prototype.highlight = function() {
+	// 	polygonLayerContext.strokeStyle = this.color;
+	// 	polygonLayerContext.beginPath();
+	// 	polygonLayerContext.arc(this.x, this.y, this.rad+2, 0, 2*Math.PI, false);
+	// 	polygonLayerContext.closePath();
+	// 	polygonLayerContext.stroke();
+	// }
+  //
+	// Dot.prototype.mouseOverMe = function() {
+	// 	var dx = this.x - mouseX;
+	// 	var dy = this.y - mouseY;
+	// 	return (dx*dx+dy*dy < this.rad*this.rad);
+	// }
 
-	function Dot(_x,_y, _col) {
-		this.x = _x;
-		this.y = _y;
-		this.rad = DOT_RAD;
-		this.color = _col;
-	}
-
-	Dot.prototype.drawMe = function() {
-		polygonLayerContext.fillStyle = this.color;
-		polygonLayerContext.beginPath();
-		polygonLayerContext.arc(this.x, this.y, this.rad, 0, 2*Math.PI, false);
-		polygonLayerContext.closePath();
-		polygonLayerContext.fill();
-	}
-
-	Dot.prototype.highlight = function() {
-		polygonLayerContext.strokeStyle = this.color;
-		polygonLayerContext.beginPath();
-		polygonLayerContext.arc(this.x, this.y, this.rad+2, 0, 2*Math.PI, false);
-		polygonLayerContext.closePath();
-		polygonLayerContext.stroke();
-	}
-
-	Dot.prototype.mouseOverMe = function() {
-		var dx = this.x - mouseX;
-		var dy = this.y - mouseY;
-		return (dx*dx+dy*dy < this.rad*this.rad);
-	}
-
-	function drawTriangle() {
-		boardContext.clearRect(-1,-1,boardCanvas.width+2, boardCanvas.height+2);
-		bottomPoint = {x: Math.floor(boardCanvas.width/2), y: boardCanvas.height - 20};
-		var longLeg = triangleHyp*Math.sqrt(3)/2;
-		boardContext.fillStyle = "#FFFFFF";
-		boardContext.strokeStyle = "#FFFFFF";
-		boardContext.beginPath();
-		boardContext.moveTo(bottomPoint.x, bottomPoint.y);
-		boardContext.lineTo(bottomPoint.x - triangleHyp*Math.sin(Math.PI/12),
-							bottomPoint.y - triangleHyp*Math.cos(Math.PI/12));
-		boardContext.lineTo(bottomPoint.x + longLeg*Math.sin(Math.PI/12),
-							bottomPoint.y - longLeg*Math.cos(Math.PI/12));
-		boardContext.lineTo(bottomPoint.x, bottomPoint.y);
-		boardContext.stroke();
-		boardContext.fill();
-	}
+	// function drawTriangle() {
+	// 	boardContext.clearRect(-1,-1,boardCanvas.width+2, boardCanvas.height+2);
+	// 	bottomPoint = {x: Math.floor(boardCanvas.width/2), y: boardCanvas.height - 20};
+	// 	var longLeg = triangleHyp*Math.sqrt(3)/2;
+	// 	boardContext.fillStyle = "#FFFFFF";
+	// 	boardContext.strokeStyle = "#FFFFFF";
+	// 	boardContext.beginPath();
+	// 	boardContext.moveTo(bottomPoint.x, bottomPoint.y);
+	// 	boardContext.lineTo(bottomPoint.x - triangleHyp*Math.sin(Math.PI/12),
+	// 						bottomPoint.y - triangleHyp*Math.cos(Math.PI/12));
+	// 	boardContext.lineTo(bottomPoint.x + longLeg*Math.sin(Math.PI/12),
+	// 						bottomPoint.y - longLeg*Math.cos(Math.PI/12));
+	// 	boardContext.lineTo(bottomPoint.x, bottomPoint.y);
+	// 	boardContext.stroke();
+	// 	boardContext.fill();
+	// }
 
 	function btnMakeSnowflakeHandler(evt) {
 		drawSnowflake();
@@ -1001,74 +1001,74 @@ function canvasApp() {
 		//blur
 		stackBlurContextRGBA(destContext, 0, 0, destCanvas.width, destCanvas.height, shadowBlur);
 	}
+  //
+	// function drawShading() {
+	// 	//var grays = [255,220,194,244,191,240,190,146,240,187,240,170];
+	// 	var grays = [255,242,234,250,233,249,232,217,249,232,249,234];
+	// 	var sideLength = snowflakeRadius + 2;
+	// 	var phase = -Math.PI/2;
+	// 	var angleInc = Math.PI/6;
+	// 	paperShadingContext.fillStyle = "#FFFFFF";
+	// 	paperShadingContext.fillRect(0,0,displayWidth,displayHeight);
+	// 	paperShadingContext.save();
+	// 	paperShadingContext.translate(displayWidth/2, displayHeight/2);
+	// 	for (var i = 0; i < 12; i++) {
+	// 		paperShadingContext.beginPath();
+	// 		paperShadingContext.moveTo(0,0);
+	// 		paperShadingContext.fillStyle = gray(grays[i]);
+	// 		paperShadingContext.lineTo(sideLength*Math.cos(phase + i*angleInc), sideLength*Math.sin(phase + i*angleInc));
+	// 		paperShadingContext.lineTo(sideLength*Math.cos(phase + (i+1)*angleInc), sideLength*Math.sin(phase + (i+1)*angleInc));
+	// 		paperShadingContext.lineTo(0,0);
+	// 		paperShadingContext.fill();
+	// 	}
+	// 	paperShadingContext.restore();
+  //
+	// 	applyGrayNoise(paperShadingContext,4);
+	// 	stackBlurContextRGB(paperShadingContext, 0, 0, displayWidth, displayWidth, 1.5);
+	// 	applyGrayNoise(paperShadingContext,2);
+	// }
 
-	function drawShading() {
-		//var grays = [255,220,194,244,191,240,190,146,240,187,240,170];
-		var grays = [255,242,234,250,233,249,232,217,249,232,249,234];
-		var sideLength = snowflakeRadius + 2;
-		var phase = -Math.PI/2;
-		var angleInc = Math.PI/6;
-		paperShadingContext.fillStyle = "#FFFFFF";
-		paperShadingContext.fillRect(0,0,displayWidth,displayHeight);
-		paperShadingContext.save();
-		paperShadingContext.translate(displayWidth/2, displayHeight/2);
-		for (var i = 0; i < 12; i++) {
-			paperShadingContext.beginPath();
-			paperShadingContext.moveTo(0,0);
-			paperShadingContext.fillStyle = gray(grays[i]);
-			paperShadingContext.lineTo(sideLength*Math.cos(phase + i*angleInc), sideLength*Math.sin(phase + i*angleInc));
-			paperShadingContext.lineTo(sideLength*Math.cos(phase + (i+1)*angleInc), sideLength*Math.sin(phase + (i+1)*angleInc));
-			paperShadingContext.lineTo(0,0);
-			paperShadingContext.fill();
-		}
-		paperShadingContext.restore();
+	// function applyGrayNoise(ctx, amt) {
+	// 	var canvas = ctx.canvas;
+	// 	var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	// 	var pixelData = imageData.data;
+	// 	var len = pixelData.length;
+	// 	var i;
+	// 	var val;
+	// 	for (i = 0; i < len; i += 4) {
+	// 		val = pixelData[i];
+	// 		val = val + (1-2*Math.random())*amt;
+	// 		val = Math.floor(val + 0.5);
+	// 		val = (val < 0) ? 0 : ((val > 255) ? 255 : val);
+	// 		pixelData[i] = val;
+	// 		pixelData[i+1] = val;
+	// 		pixelData[i+2] = val;
+	// 	}
+	// 	ctx.putImageData(imageData, 0, 0);
+	// }
 
-		applyGrayNoise(paperShadingContext,4);
-		stackBlurContextRGB(paperShadingContext, 0, 0, displayWidth, displayWidth, 1.5);
-		applyGrayNoise(paperShadingContext,2);
-	}
+	// function gray(value) {
+	// 	return "rgb(" + value + "," + value + "," + value + ")";
+	// }
 
-	function applyGrayNoise(ctx, amt) {
-		var canvas = ctx.canvas;
-		var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-		var pixelData = imageData.data;
-		var len = pixelData.length;
-		var i;
-		var val;
-		for (i = 0; i < len; i += 4) {
-			val = pixelData[i];
-			val = val + (1-2*Math.random())*amt;
-			val = Math.floor(val + 0.5);
-			val = (val < 0) ? 0 : ((val > 255) ? 255 : val);
-			pixelData[i] = val;
-			pixelData[i+1] = val;
-			pixelData[i+2] = val;
-		}
-		ctx.putImageData(imageData, 0, 0);
-	}
-
-	function gray(value) {
-		return "rgb(" + value + "," + value + "," + value + ")";
-	}
-
-	function redToAlphaFilter(ctx) {
-		var canvas = ctx.canvas;
-		var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-		var pixelData = imageData.data;
-		var len = pixelData.length;
-		var i;
-		for (i = 0; i < len; i += 4) {
-			pixelData[i+3] *= pixelData[i]/255.0;
-			//make white at same time
-			if (pixelData[i] !== 255) {
-				pixelData[i] = 255;
-				pixelData[i+1] = 255;
-				pixelData[i+2] = 255;
-			}
-
-		}
-		ctx.putImageData(imageData, 0, 0);
-	}
+	// function redToAlphaFilter(ctx) {
+	// 	var canvas = ctx.canvas;
+	// 	var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	// 	var pixelData = imageData.data;
+	// 	var len = pixelData.length;
+	// 	var i;
+	// 	for (i = 0; i < len; i += 4) {
+	// 		pixelData[i+3] *= pixelData[i]/255.0;
+	// 		//make white at same time
+	// 		if (pixelData[i] !== 255) {
+	// 			pixelData[i] = 255;
+	// 			pixelData[i+1] = 255;
+	// 			pixelData[i+2] = 255;
+	// 		}
+  //
+	// 	}
+	// 	ctx.putImageData(imageData, 0, 0);
+	// }
 
 	function transferAlpha(sourceContext, destContext) {
 		//will only work if contexts come from same-sized canvases.
