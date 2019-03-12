@@ -520,18 +520,18 @@ function canvasApp() {
 		urlText2.style.background = bgColors[index].start;
 	}
 
-	function drawBoardBackground(index) {
-		boardBackgroundContext.fillStyle = bgColors[index].start;
-		boardBackgroundContext.fillRect(0,0,displayWidth,displayHeight);
-	}
+	// function drawBoardBackground(index) {
+	// 	boardBackgroundContext.fillStyle = bgColors[index].start;
+	// 	boardBackgroundContext.fillRect(0,0,displayWidth,displayHeight);
+	// }
 
-	function drawDisplayBackground(index) {
-
-		//copy from pre-computed canvas
-		displayBackgroundContext.drawImage(gradientBackgroundCanvases[index],
-								0, 0, displayWidth,displayHeight,
-								0, 0, displayWidth,displayHeight);
-	}
+	// function drawDisplayBackground(index) {
+  //
+	// 	//copy from pre-computed canvas
+	// 	displayBackgroundContext.drawImage(gradientBackgroundCanvases[index],
+	// 							0, 0, displayWidth,displayHeight,
+	// 							0, 0, displayWidth,displayHeight);
+	// }
 
 	function setUndoButtonInactive() {
 		//btnUndo.style.backgroundColor="#DDD";
@@ -1149,19 +1149,19 @@ function canvasApp() {
       // The firebase.auth.AuthCredential type that was used.
       var credential = error.credential;
       // ...
-      
+
     });
   }
 
 	//function below from http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-	function hexToRgb(hex) {
-		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		return result ? {
-			r: parseInt(result[1], 16),
-			g: parseInt(result[2], 16),
-			b: parseInt(result[3], 16)
-		} : null;
-	}
+	// function hexToRgb(hex) {
+	// 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	// 	return result ? {
+	// 		r: parseInt(result[1], 16),
+	// 		g: parseInt(result[2], 16),
+	// 		b: parseInt(result[3], 16)
+	// 	} : null;
+	// }
 
 }
 
