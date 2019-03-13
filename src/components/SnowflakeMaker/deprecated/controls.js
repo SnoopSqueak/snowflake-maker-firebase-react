@@ -17,187 +17,187 @@ rectangleworld.com
 Nov 19 2012
 Uses Floyd-Steinberg dither algorithm.
 */
-function DitheredLinearGradient(_x0,_y0,_x1,_y1) {
-	this.x0 = _x0;
-	this.y0 = _y0;
-	this.x1 = _x1;
-	this.y1 = _y1;
-	this.colorStops = [];
-}
-
-DitheredLinearGradient.prototype.addColorStop = function(ratio,r,g,b) {
-	if ((ratio < 0) || (ratio > 1)) {
-		return;
-	}
-	var newStop = {ratio:ratio, r:r, g:g, b:b};
-	if ((ratio >= 0) && (ratio <= 1)) {
-		if (this.colorStops.length === 0) {
-			this.colorStops.push(newStop);
-		}
-		else {
-			var i = 0;
-			var found = false;
-			var len = this.colorStops.length;
-			//search for proper place to put stop in order.
-			while ((!found) && (i<len)) {
-				found = (ratio <= this.colorStops[i].ratio);
-				if (!found) {
-					i++;
-				}
-			}
-			//add stop - remove next one if duplicate ratio
-			if (!found) {
-				//place at end
-				this.colorStops.push(newStop);
-			}
-			else {
-				if (ratio === this.colorStops[i].ratio) {
-					//replace
-					this.colorStops.splice(i, 1, newStop);
-				}
-				else {
-					this.colorStops.splice(i, 0, newStop);
-				}
-			}
-		}
-	}
-}
-
-
-DitheredLinearGradient.prototype.fillRect = function(ctx, rectX0, rectY0, rectW, rectH) {
-
-	if (this.colorStops.length === 0) {
-		return;
-	}
-
-	var image = ctx.getImageData(rectX0, rectY0, rectW, rectH);
-	var pixelData = image.data;
-	var len = pixelData.length;
-	var nearestValue;
-	var quantError;
-	var x;
-	var y;
-
-	var vx = this.x1 - this.x0;
-	var vy = this.y1 - this.y0;
-	var vMagSquareRecip = 1/(vx*vx+vy*vy);
-	var ratio;
-
-	var r,g,b;
-	var r0,g0,b0,r1,g1,b1;
-	var ratio0,ratio1;
-	var f;
-	var stopNumber;
-	var found;
-	var q;
-  var newStop;
-
-	var rBuffer = [];
-	var gBuffer = [];
-	var bBuffer = [];
-
-	//first complete color stops with 0 and 1 ratios if not already present
-	if (this.colorStops[0].ratio !== 0) {
-		newStop = {	ratio:0,
-						r: this.colorStops[0].r,
-						g: this.colorStops[0].g,
-						b: this.colorStops[0].b}
-		this.colorStops.splice(0,0,newStop);
-	}
-	if (this.colorStops[this.colorStops.length-1].ratio !== 1) {
-		newStop = {	ratio:1,
-						r: this.colorStops[this.colorStops.length-1].r,
-						g: this.colorStops[this.colorStops.length-1].g,
-						b: this.colorStops[this.colorStops.length-1].b}
-		this.colorStops.push(newStop);
-	}
-
-	//create float valued gradient
-	for (let i = 0; i<len/4; i++) {
-
-		x = rectX0 + (i % rectW);
-		y = rectY0 + Math.floor(i/rectW);
-
-		ratio = (vx*(x - this.x0) + vy*(y - this.y0))*vMagSquareRecip;
-		if (ratio < 0) {
-			ratio = 0;
-		}
-		else if (ratio > 1) {
-			ratio = 1;
-		}
-
-		//find out what two stops this is between
-		if (ratio === 1) {
-			stopNumber = this.colorStops.length-1;
-		}
-		else {
-			stopNumber = 0;
-			found = false;
-			while (!found) {
-				found = (ratio < this.colorStops[stopNumber].ratio);
-				if (!found) {
-					stopNumber++;
-				}
-			}
-		}
-
-		//calculate color.
-		r0 = this.colorStops[stopNumber-1].r;
-		g0 = this.colorStops[stopNumber-1].g;
-		b0 = this.colorStops[stopNumber-1].b;
-		r1 = this.colorStops[stopNumber].r;
-		g1 = this.colorStops[stopNumber].g;
-		b1 = this.colorStops[stopNumber].b;
-		ratio0 = this.colorStops[stopNumber-1].ratio;
-		ratio1 = this.colorStops[stopNumber].ratio;
-
-		f = (ratio-ratio0)/(ratio1-ratio0);
-		r = r0 + (r1 - r0)*f;
-		g = g0 + (g1 - g0)*f;
-		b = b0 + (b1 - b0)*f;
-
-		//set color as float values in buffer arrays
-		rBuffer.push(r);
-		gBuffer.push(g);
-		bBuffer.push(b);
-	}
-
-	//While converting floats to integer valued color values, apply Floyd-Steinberg dither.
-	for (let i = 0; i<len/4; i++) {
-		nearestValue = ~~(rBuffer[i]);
-		quantError =rBuffer[i] - nearestValue;
-		rBuffer[i+1] += 7/16*quantError;
-		rBuffer[i-1+rectW] += 3/16*quantError;
-		rBuffer[i + rectW] += 5/16*quantError;
-		rBuffer[i+1 + rectW] += 1/16*quantError;
-
-		nearestValue = ~~(gBuffer[i]);
-		quantError =gBuffer[i] - nearestValue;
-		gBuffer[i+1] += 7/16*quantError;
-		gBuffer[i-1+rectW] += 3/16*quantError;
-		gBuffer[i + rectW] += 5/16*quantError;
-		gBuffer[i+1 + rectW] += 1/16*quantError;
-
-		nearestValue = ~~(bBuffer[i]);
-		quantError =bBuffer[i] - nearestValue;
-		bBuffer[i+1] += 7/16*quantError;
-		bBuffer[i-1+rectW] += 3/16*quantError;
-		bBuffer[i + rectW] += 5/16*quantError;
-		bBuffer[i+1 + rectW] += 1/16*quantError;
-	}
-
-	//copy to pixel data
-	for (let i=0; i<len-4*rectW; i += 4) {
-		q = i/4;
-		pixelData[i] = ~~rBuffer[q];
-		pixelData[i+1] = ~~gBuffer[q];
-		pixelData[i+2] = ~~bBuffer[q];
-		pixelData[i+3] = 255;
-	}
-
-	ctx.putImageData(image,0,0);
-
-}
+// function DitheredLinearGradient(_x0,_y0,_x1,_y1) {
+// 	this.x0 = _x0;
+// 	this.y0 = _y0;
+// 	this.x1 = _x1;
+// 	this.y1 = _y1;
+// 	this.colorStops = [];
+// }
+//
+// DitheredLinearGradient.prototype.addColorStop = function(ratio,r,g,b) {
+// 	if ((ratio < 0) || (ratio > 1)) {
+// 		return;
+// 	}
+// 	var newStop = {ratio:ratio, r:r, g:g, b:b};
+// 	if ((ratio >= 0) && (ratio <= 1)) {
+// 		if (this.colorStops.length === 0) {
+// 			this.colorStops.push(newStop);
+// 		}
+// 		else {
+// 			var i = 0;
+// 			var found = false;
+// 			var len = this.colorStops.length;
+// 			//search for proper place to put stop in order.
+// 			while ((!found) && (i<len)) {
+// 				found = (ratio <= this.colorStops[i].ratio);
+// 				if (!found) {
+// 					i++;
+// 				}
+// 			}
+// 			//add stop - remove next one if duplicate ratio
+// 			if (!found) {
+// 				//place at end
+// 				this.colorStops.push(newStop);
+// 			}
+// 			else {
+// 				if (ratio === this.colorStops[i].ratio) {
+// 					//replace
+// 					this.colorStops.splice(i, 1, newStop);
+// 				}
+// 				else {
+// 					this.colorStops.splice(i, 0, newStop);
+// 				}
+// 			}
+// 		}
+// 	}
+// }
+//
+//
+// DitheredLinearGradient.prototype.fillRect = function(ctx, rectX0, rectY0, rectW, rectH) {
+//
+// 	if (this.colorStops.length === 0) {
+// 		return;
+// 	}
+//
+// 	var image = ctx.getImageData(rectX0, rectY0, rectW, rectH);
+// 	var pixelData = image.data;
+// 	var len = pixelData.length;
+// 	var nearestValue;
+// 	var quantError;
+// 	var x;
+// 	var y;
+//
+// 	var vx = this.x1 - this.x0;
+// 	var vy = this.y1 - this.y0;
+// 	var vMagSquareRecip = 1/(vx*vx+vy*vy);
+// 	var ratio;
+//
+// 	var r,g,b;
+// 	var r0,g0,b0,r1,g1,b1;
+// 	var ratio0,ratio1;
+// 	var f;
+// 	var stopNumber;
+// 	var found;
+// 	var q;
+//   var newStop;
+//
+// 	var rBuffer = [];
+// 	var gBuffer = [];
+// 	var bBuffer = [];
+//
+// 	//first complete color stops with 0 and 1 ratios if not already present
+// 	if (this.colorStops[0].ratio !== 0) {
+// 		newStop = {	ratio:0,
+// 						r: this.colorStops[0].r,
+// 						g: this.colorStops[0].g,
+// 						b: this.colorStops[0].b}
+// 		this.colorStops.splice(0,0,newStop);
+// 	}
+// 	if (this.colorStops[this.colorStops.length-1].ratio !== 1) {
+// 		newStop = {	ratio:1,
+// 						r: this.colorStops[this.colorStops.length-1].r,
+// 						g: this.colorStops[this.colorStops.length-1].g,
+// 						b: this.colorStops[this.colorStops.length-1].b}
+// 		this.colorStops.push(newStop);
+// 	}
+//
+// 	//create float valued gradient
+// 	for (let i = 0; i<len/4; i++) {
+//
+// 		x = rectX0 + (i % rectW);
+// 		y = rectY0 + Math.floor(i/rectW);
+//
+// 		ratio = (vx*(x - this.x0) + vy*(y - this.y0))*vMagSquareRecip;
+// 		if (ratio < 0) {
+// 			ratio = 0;
+// 		}
+// 		else if (ratio > 1) {
+// 			ratio = 1;
+// 		}
+//
+// 		//find out what two stops this is between
+// 		if (ratio === 1) {
+// 			stopNumber = this.colorStops.length-1;
+// 		}
+// 		else {
+// 			stopNumber = 0;
+// 			found = false;
+// 			while (!found) {
+// 				found = (ratio < this.colorStops[stopNumber].ratio);
+// 				if (!found) {
+// 					stopNumber++;
+// 				}
+// 			}
+// 		}
+//
+// 		//calculate color.
+// 		r0 = this.colorStops[stopNumber-1].r;
+// 		g0 = this.colorStops[stopNumber-1].g;
+// 		b0 = this.colorStops[stopNumber-1].b;
+// 		r1 = this.colorStops[stopNumber].r;
+// 		g1 = this.colorStops[stopNumber].g;
+// 		b1 = this.colorStops[stopNumber].b;
+// 		ratio0 = this.colorStops[stopNumber-1].ratio;
+// 		ratio1 = this.colorStops[stopNumber].ratio;
+//
+// 		f = (ratio-ratio0)/(ratio1-ratio0);
+// 		r = r0 + (r1 - r0)*f;
+// 		g = g0 + (g1 - g0)*f;
+// 		b = b0 + (b1 - b0)*f;
+//
+// 		//set color as float values in buffer arrays
+// 		rBuffer.push(r);
+// 		gBuffer.push(g);
+// 		bBuffer.push(b);
+// 	}
+//
+// 	//While converting floats to integer valued color values, apply Floyd-Steinberg dither.
+// 	for (let i = 0; i<len/4; i++) {
+// 		nearestValue = ~~(rBuffer[i]);
+// 		quantError =rBuffer[i] - nearestValue;
+// 		rBuffer[i+1] += 7/16*quantError;
+// 		rBuffer[i-1+rectW] += 3/16*quantError;
+// 		rBuffer[i + rectW] += 5/16*quantError;
+// 		rBuffer[i+1 + rectW] += 1/16*quantError;
+//
+// 		nearestValue = ~~(gBuffer[i]);
+// 		quantError =gBuffer[i] - nearestValue;
+// 		gBuffer[i+1] += 7/16*quantError;
+// 		gBuffer[i-1+rectW] += 3/16*quantError;
+// 		gBuffer[i + rectW] += 5/16*quantError;
+// 		gBuffer[i+1 + rectW] += 1/16*quantError;
+//
+// 		nearestValue = ~~(bBuffer[i]);
+// 		quantError =bBuffer[i] - nearestValue;
+// 		bBuffer[i+1] += 7/16*quantError;
+// 		bBuffer[i-1+rectW] += 3/16*quantError;
+// 		bBuffer[i + rectW] += 5/16*quantError;
+// 		bBuffer[i+1 + rectW] += 1/16*quantError;
+// 	}
+//
+// 	//copy to pixel data
+// 	for (let i=0; i<len-4*rectW; i += 4) {
+// 		q = i/4;
+// 		pixelData[i] = ~~rBuffer[q];
+// 		pixelData[i+1] = ~~gBuffer[q];
+// 		pixelData[i+2] = ~~bBuffer[q];
+// 		pixelData[i+3] = 255;
+// 	}
+//
+// 	ctx.putImageData(image,0,0);
+//
+// }
 
 
 
@@ -257,11 +257,11 @@ function canvasApp() {
 	// var boardBackgroundContext = boardBackgroundCanvas.getContext("2d");
 	// var polygonLayer = document.getElementById("polygonLayer");
 	// var polygonLayerContext = polygonLayer.getContext("2d");
-
-	var displayWidth = displayCanvas.width;
-	var displayHeight = displayCanvas.height;
-	var boardWidth = boardCanvas.width;
-	var boardHeight = boardCanvas.height;
+  //
+	// var displayWidth = displayCanvas.width;
+	// var displayHeight = displayCanvas.height;
+	// var boardWidth = boardCanvas.width;
+	// var boardHeight = boardCanvas.height;
 
   //off screen canvas used only when exporting image
 	// var exportCanvas = document.createElement('canvas');
@@ -306,33 +306,33 @@ function canvasApp() {
 	var btnSave = document.getElementById("btnSave");
   var btnLogIn = document.getElementById("btnLogIn");
 
-	var drawing;
-	var mouseX;
-	var mouseY;
+	// var drawing;
+	// var mouseX;
+	// var mouseY;
 	//var pmouseX;
 	//var pmouseY;
-	var triangleHyp;
-	var snowflakeRadius;
-	var bottomPoint;
+	// var triangleHyp;
+	// var snowflakeRadius;
+	// var bottomPoint;
 	//var boardColor;
 	//var boardColor2;
-	var numUndoLevels;
-	var DOT_RAD;
-	var FIRST_DOT_RAD;
-	var dotColor;
-	var firstDotColor;
-	var dots;
-	var polygonLineColor;
-	var history;
-	var historyLength;
-	var dotToDragIndex;
-  const urlColor = "#FFFFFF";
+	// var numUndoLevels;
+	// var DOT_RAD;
+	// var FIRST_DOT_RAD;
+	// var dotColor;
+	// var firstDotColor;
+	// var dots;
+	// var polygonLineColor;
+	// var history;
+	// var historyLength;
+	//var dotToDragIndex;
+  // const urlColor = "#FFFFFF";
 
 	//var bgColors1;
 	//var bgColors2;
-	var gradientBackgroundCanvases;
-
-	var shadedSnowflakeCurrent;
+	// var gradientBackgroundCanvases;
+  //
+	// var shadedSnowflakeCurrent;
 
 	//var saveConfirmSeenOnce;
 
@@ -413,7 +413,7 @@ function canvasApp() {
 		// setUpColorButtons();
     //
 
-		numUndoLevels = 10;
+		// numUndoLevels = 10;
 		// DOT_RAD = 6.5;
 		// FIRST_DOT_RAD = 10;
 		// dotColor = "rgba(255,0,0,0.5)";
@@ -426,22 +426,22 @@ function canvasApp() {
 		// drawTriangle();
 		//drawSnowflake();
 
-		shadedSnowflakeCurrent = false;
+		// shadedSnowflakeCurrent = false;
 
 		//var saveConfirmSeenOnce = false;
-
-		dots = [];
-
-		history = {};
-		addCurrentBoardToHistory();
-		historyLength = 1;
+    //
+		// dots = [];
+    //
+		// history = {};
+		// addCurrentBoardToHistory();
+		// historyLength = 1;
 
 		setUndoButtonInactive();
 
 		btnMakeSnowflake.addEventListener("click", btnMakeSnowflakeHandler, false);
-		btnUndo.addEventListener("click", btnUndoHandler, false);
-		btnReset.addEventListener("click", btnResetHandler, false);
-		btnAdd.addEventListener("click", btnAddHandler, false);
+		//btnUndo.addEventListener("click", btnUndoHandler, false);
+		//btnReset.addEventListener("click", btnResetHandler, false);
+		//btnAdd.addEventListener("click", btnAddHandler, false);
 		cbShading.addEventListener("click", cbShadingListener, false);
 		//polygonLayer.addEventListener("mousedown", mouseDownHandler, false);
 		btnSave.addEventListener("click", btnSaveListener, false);
@@ -533,14 +533,14 @@ function canvasApp() {
 	// 							0, 0, displayWidth,displayHeight);
 	// }
 
-	function setUndoButtonInactive() {
-		//btnUndo.style.backgroundColor="#DDD";
-		btnUndo.className = "button1_inactive";
-	}
-	function setUndoButtonActive() {
-		//btnUndo.style.backgroundColor="#666";
-		btnUndo.className = "button1";
-	}
+	// function setUndoButtonInactive() {
+	// 	//btnUndo.style.backgroundColor="#DDD";
+	// 	btnUndo.className = "button1_inactive";
+	// }
+	// function setUndoButtonActive() {
+	// 	//btnUndo.style.backgroundColor="#666";
+	// 	btnUndo.className = "button1";
+	// }
 
 	// function mouseDownHandler(evt) {
 	// 	var numDots = dots.length;
@@ -681,17 +681,17 @@ function canvasApp() {
 	// 		drawSnowflake();
 	// 	}
 	// }
-
-	function cancelDrawing() {
-		polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
-		dots = [];
-		drawing = false;
-		window.removeEventListener("mousemove", mouseMoveWhileDrawing, false);
-	}
-
-	function btnAddHandler(evt) {
-		cancelDrawing();
-	}
+  //
+	// function cancelDrawing() {
+	// 	polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
+	// 	dots = [];
+	// 	drawing = false;
+	// 	window.removeEventListener("mousemove", mouseMoveWhileDrawing, false);
+	// }
+  //
+	// function btnAddHandler(evt) {
+	// 	cancelDrawing();
+	// }
 
 	// function addCurrentBoardToHistory() {
 	// 	setUndoButtonActive();
@@ -726,82 +726,82 @@ function canvasApp() {
 	// 	}
 	// }
 
-	function btnUndoHandler(evt) {
-		undo(true);
-		dots = [];
-	}
+	// function btnUndoHandler(evt) {
+	// 	undo(true);
+	// 	dots = [];
+	// }
 
-	function undo(clearDrawingBoard) {
-		if (clearDrawingBoard) {
-			//first clear board of any active lines
-			polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
-		}
+	// function undo(clearDrawingBoard) {
+	// 	if (clearDrawingBoard) {
+	// 		//first clear board of any active lines
+	// 		polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
+	// 	}
+  //
+	// 	if (drawing) {
+	// 		cancelDrawing();
+	// 		return;
+	// 	}
+	// 	if (historyLength === 1) {
+	// 		//this means the board still has a blank triangle
+	// 		return;
+	// 	}
+  //
+	// 	//first history state will be copy of current so remove it
+	// 	//history.first.canvas = null;
+	// 	history.first.canvas.getContext('2d').clearRect(0, 0, history.first.canvas.width, history.first.canvas.height);
+	// 	history.first.next.prev = null;
+	// 	history.first = history.first.next;
+	// 	historyLength--;
+	// 	boardContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
+	// 	boardContext.drawImage(history.first.canvas,
+	// 							0, 0, boardWidth, boardHeight,
+	// 							0, 0, boardWidth, boardHeight);
+	// 	if (historyLength === 1) {
+	// 		setUndoButtonInactive();
+	// 	}
+  //
+	// 	if (cbAutoUpdate.checked) {
+	// 		drawSnowflake();
+	// 	}
+  //
+	// 	shadedSnowflakeCurrent = false;
+	// }
 
-		if (drawing) {
-			cancelDrawing();
-			return;
-		}
-		if (historyLength === 1) {
-			//this means the board still has a blank triangle
-			return;
-		}
+	// function btnResetHandler(evt) {
+	// 	if (window.confirm('Do you really want to erase everything and start over?')) {
+	// 		if (drawing) {
+	// 			cancelDrawing();
+	// 		}
+	// 		dots = [];
+	// 		drawing = false;
+	// 		clearHistory();
+	// 		clearDisplay();
+	// 		drawTriangle();
+	// 		addCurrentBoardToHistory();
+	// 		polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
+	// 		shadedSnowflakeCurrent = false;
+	// 	}
+	// }
+  //
+	// function clearDisplay() {
+	// 	displayContext.clearRect(-1,-1,displayWidth+2,displayHeight+2);
+	// }
 
-		//first history state will be copy of current so remove it
-		//history.first.canvas = null;
-		history.first.canvas.getContext('2d').clearRect(0, 0, history.first.canvas.width, history.first.canvas.height);
-		history.first.next.prev = null;
-		history.first = history.first.next;
-		historyLength--;
-		boardContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
-		boardContext.drawImage(history.first.canvas,
-								0, 0, boardWidth, boardHeight,
-								0, 0, boardWidth, boardHeight);
-		if (historyLength === 1) {
-			setUndoButtonInactive();
-		}
-
-		if (cbAutoUpdate.checked) {
-			drawSnowflake();
-		}
-
-		shadedSnowflakeCurrent = false;
-	}
-
-	function btnResetHandler(evt) {
-		if (window.confirm('Do you really want to erase everything and start over?')) {
-			if (drawing) {
-				cancelDrawing();
-			}
-			dots = [];
-			drawing = false;
-			clearHistory();
-			clearDisplay();
-			drawTriangle();
-			addCurrentBoardToHistory();
-			polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
-			shadedSnowflakeCurrent = false;
-		}
-	}
-
-	function clearDisplay() {
-		displayContext.clearRect(-1,-1,displayWidth+2,displayHeight+2);
-	}
-
-	function clearHistory() {
-		while (historyLength > 0) {
-			//history.first.canvas = null;
-			history.first.canvas.getContext('2d').clearRect(0, 0, history.first.canvas.width, history.first.canvas.height);
-			if (historyLength > 1) {
-				history.first.next.prev = null;
-				history.first = history.first.next;
-			}
-			else {
-				history.first = null;
-			}
-			historyLength--;
-		}
-		setUndoButtonInactive();
-	}
+	// function clearHistory() {
+	// 	while (historyLength > 0) {
+	// 		//history.first.canvas = null;
+	// 		history.first.canvas.getContext('2d').clearRect(0, 0, history.first.canvas.width, history.first.canvas.height);
+	// 		if (historyLength > 1) {
+	// 			history.first.next.prev = null;
+	// 			history.first = history.first.next;
+	// 		}
+	// 		else {
+	// 			history.first = null;
+	// 		}
+	// 		historyLength--;
+	// 	}
+	// 	setUndoButtonInactive();
+	// }
   //
 	// function drawPolygonToBoard() {
 	// 	var i;
@@ -880,127 +880,127 @@ function canvasApp() {
 		drawSnowflake();
 	}
 
-	function drawSnowflake() {
-		var scale = snowflakeRadius/triangleHyp;
+	// function drawSnowflake() {
+	// 	var scale = snowflakeRadius/triangleHyp;
+  //
+	// 	//first draw to buffer
+	// 	snowflakeShapeContext.clearRect(-1,-1,snowflakeShapeCanvas.width+2,snowflakeShapeCanvas.height+2);
+	// 	for (var i = 0; i < 6; i++) {
+	// 		snowflakeShapeContext.save();
+	// 		snowflakeShapeContext.translate(displayCanvas.width/2, displayCanvas.height/2);
+	// 		snowflakeShapeContext.scale(scale, scale);
+  //
+	// 		snowflakeShapeContext.save();
+	// 		snowflakeShapeContext.rotate(i*Math.PI/3 + Math.PI/12);
+	// 		snowflakeShapeContext.translate(-bottomPoint.x, -bottomPoint.y);
+	// 		snowflakeShapeContext.drawImage(boardCanvas,
+	// 								0, 0, boardCanvas.width, boardCanvas.height,
+	// 								0, 0, boardCanvas.width, boardCanvas.height);
+  //
+	// 		snowflakeShapeContext.restore();
+	// 		snowflakeShapeContext.scale(-1, 1);
+	// 		snowflakeShapeContext.rotate(i*Math.PI/3 + Math.PI/12);
+	// 		snowflakeShapeContext.translate(-bottomPoint.x, -bottomPoint.y);
+	// 		snowflakeShapeContext.drawImage(boardCanvas,
+	// 								0, 0, boardCanvas.width, boardCanvas.height,
+	// 								0, 0, boardCanvas.width, boardCanvas.height);
+	// 		snowflakeShapeContext.restore();
+	// 	}
+  //
+  //
+	// 	clearDisplay();
+  //
+	// 	//make shadow
+	// 	makeShadow(snowflakeShapeContext, shadowContext);
+	// 	//draw shadow to display
+	// 	displayContext.drawImage(shadowCanvas,
+	// 								0, 0, displayWidth, displayHeight,
+	// 								0, 0, displayWidth, displayHeight);
+  //
+	// 	//draw paper shading to buffer
+	// 	if (cbShading.checked) {
+	// 		drawShadedSnowflakeToBuffer();
+	// 		displayContext.drawImage(bufferCanvas,
+	// 									0, 0, displayWidth, displayHeight,
+	// 									0, 0, displayWidth, displayHeight);
+	// 		shadedSnowflakeCurrent = true;
+	// 	}
+	// 	else {
+	// 		displayContext.drawImage(snowflakeShapeCanvas,
+	// 									0, 0, displayWidth, displayHeight,
+	// 									0, 0, displayWidth, displayHeight);
+	// 		shadedSnowflakeCurrent = false;
+	// 	}
+	// }
 
-		//first draw to buffer
-		snowflakeShapeContext.clearRect(-1,-1,snowflakeShapeCanvas.width+2,snowflakeShapeCanvas.height+2);
-		for (var i = 0; i < 6; i++) {
-			snowflakeShapeContext.save();
-			snowflakeShapeContext.translate(displayCanvas.width/2, displayCanvas.height/2);
-			snowflakeShapeContext.scale(scale, scale);
+	// function drawShadedSnowflakeToBuffer() {
+	// 		bufferContext.drawImage(paperShadingCanvas,
+	// 									0, 0, displayWidth, displayHeight,
+	// 									0, 0, displayWidth, displayHeight);
+	// 		transferAlpha(snowflakeShapeContext, bufferContext);
+	// }
 
-			snowflakeShapeContext.save();
-			snowflakeShapeContext.rotate(i*Math.PI/3 + Math.PI/12);
-			snowflakeShapeContext.translate(-bottomPoint.x, -bottomPoint.y);
-			snowflakeShapeContext.drawImage(boardCanvas,
-									0, 0, boardCanvas.width, boardCanvas.height,
-									0, 0, boardCanvas.width, boardCanvas.height);
+	// function cbShadingListener(evt) {
+	// 	if (cbShading.checked) {
+	// 		if (!shadedSnowflakeCurrent) {
+	// 			drawShadedSnowflakeToBuffer();
+	// 			makeShadow(snowflakeShapeContext, shadowContext);
+	// 			shadedSnowflakeCurrent = true;
+	// 		}
+	// 		clearDisplay();
+	// 		displayContext.drawImage(shadowCanvas,
+	// 								0, 0, displayWidth, displayHeight,
+	// 								0, 0, displayWidth, displayHeight);
+	// 		displayContext.drawImage(bufferCanvas,
+	// 									0, 0, displayWidth, displayHeight,
+	// 									0, 0, displayWidth, displayHeight);
+	// 	}
+	// 	else {
+	// 		clearDisplay();
+	// 		displayContext.drawImage(shadowCanvas,
+	// 								0, 0, displayWidth, displayHeight,
+	// 								0, 0, displayWidth, displayHeight);
+	// 		displayContext.drawImage(snowflakeShapeCanvas,
+	// 									0, 0, displayWidth, displayHeight,
+	// 									0, 0, displayWidth, displayHeight);
+	// 	}
+	// }
 
-			snowflakeShapeContext.restore();
-			snowflakeShapeContext.scale(-1, 1);
-			snowflakeShapeContext.rotate(i*Math.PI/3 + Math.PI/12);
-			snowflakeShapeContext.translate(-bottomPoint.x, -bottomPoint.y);
-			snowflakeShapeContext.drawImage(boardCanvas,
-									0, 0, boardCanvas.width, boardCanvas.height,
-									0, 0, boardCanvas.width, boardCanvas.height);
-			snowflakeShapeContext.restore();
-		}
-
-
-		clearDisplay();
-
-		//make shadow
-		makeShadow(snowflakeShapeContext, shadowContext);
-		//draw shadow to display
-		displayContext.drawImage(shadowCanvas,
-									0, 0, displayWidth, displayHeight,
-									0, 0, displayWidth, displayHeight);
-
-		//draw paper shading to buffer
-		if (cbShading.checked) {
-			drawShadedSnowflakeToBuffer();
-			displayContext.drawImage(bufferCanvas,
-										0, 0, displayWidth, displayHeight,
-										0, 0, displayWidth, displayHeight);
-			shadedSnowflakeCurrent = true;
-		}
-		else {
-			displayContext.drawImage(snowflakeShapeCanvas,
-										0, 0, displayWidth, displayHeight,
-										0, 0, displayWidth, displayHeight);
-			shadedSnowflakeCurrent = false;
-		}
-	}
-
-	function drawShadedSnowflakeToBuffer() {
-			bufferContext.drawImage(paperShadingCanvas,
-										0, 0, displayWidth, displayHeight,
-										0, 0, displayWidth, displayHeight);
-			transferAlpha(snowflakeShapeContext, bufferContext);
-	}
-
-	function cbShadingListener(evt) {
-		if (cbShading.checked) {
-			if (!shadedSnowflakeCurrent) {
-				drawShadedSnowflakeToBuffer();
-				makeShadow(snowflakeShapeContext, shadowContext);
-				shadedSnowflakeCurrent = true;
-			}
-			clearDisplay();
-			displayContext.drawImage(shadowCanvas,
-									0, 0, displayWidth, displayHeight,
-									0, 0, displayWidth, displayHeight);
-			displayContext.drawImage(bufferCanvas,
-										0, 0, displayWidth, displayHeight,
-										0, 0, displayWidth, displayHeight);
-		}
-		else {
-			clearDisplay();
-			displayContext.drawImage(shadowCanvas,
-									0, 0, displayWidth, displayHeight,
-									0, 0, displayWidth, displayHeight);
-			displayContext.drawImage(snowflakeShapeCanvas,
-										0, 0, displayWidth, displayHeight,
-										0, 0, displayWidth, displayHeight);
-		}
-	}
-
-	function makeShadow(sourceContext, destContext) { //manually created shadow for consistent cross-browser performance
-		var shadowR = 0;
-		var shadowG = 0;
-		var shadowB = 0;
-		var shadowA = 0.15;
-		var shadowOffsetX = 6;
-		var shadowOffsetY = 6;
-		var shadowBlur = 4;
-		var sourceCanvas = sourceContext.canvas;
-		var destCanvas = destContext.canvas;
-
-		destContext.clearRect(0,0,destCanvas.width,destCanvas.height);
-
-		destContext.drawImage(sourceCanvas,
-								0, 0, sourceCanvas.width, sourceCanvas.height,
-								shadowOffsetX, shadowOffsetY, sourceCanvas.width, sourceCanvas.height);
-
-		//Filter: change color to shadow color, multiply alpha by shadow alpha factor
-		var imageData = destContext.getImageData(0, 0, destCanvas.width, destCanvas.height);
-		var pixelData = imageData.data;
-		var len = pixelData.length;
-		var i;
-		for (i = 0; i < len; i += 4) {
-			if (pixelData[i+3] !== 0) {
-				pixelData[i] = shadowR;
-				pixelData[i+1] = shadowG;
-				pixelData[i+2] = shadowB;
-				pixelData[i+3] *= shadowA;
-			}
-		}
-		destContext.putImageData(imageData, 0, 0);
-
-		//blur
-		stackBlurContextRGBA(destContext, 0, 0, destCanvas.width, destCanvas.height, shadowBlur);
-	}
+	// function makeShadow(sourceContext, destContext) { //manually created shadow for consistent cross-browser performance
+	// 	var shadowR = 0;
+	// 	var shadowG = 0;
+	// 	var shadowB = 0;
+	// 	var shadowA = 0.15;
+	// 	var shadowOffsetX = 6;
+	// 	var shadowOffsetY = 6;
+	// 	var shadowBlur = 4;
+	// 	var sourceCanvas = sourceContext.canvas;
+	// 	var destCanvas = destContext.canvas;
+  //
+	// 	destContext.clearRect(0,0,destCanvas.width,destCanvas.height);
+  //
+	// 	destContext.drawImage(sourceCanvas,
+	// 							0, 0, sourceCanvas.width, sourceCanvas.height,
+	// 							shadowOffsetX, shadowOffsetY, sourceCanvas.width, sourceCanvas.height);
+  //
+	// 	//Filter: change color to shadow color, multiply alpha by shadow alpha factor
+	// 	var imageData = destContext.getImageData(0, 0, destCanvas.width, destCanvas.height);
+	// 	var pixelData = imageData.data;
+	// 	var len = pixelData.length;
+	// 	var i;
+	// 	for (i = 0; i < len; i += 4) {
+	// 		if (pixelData[i+3] !== 0) {
+	// 			pixelData[i] = shadowR;
+	// 			pixelData[i+1] = shadowG;
+	// 			pixelData[i+2] = shadowB;
+	// 			pixelData[i+3] *= shadowA;
+	// 		}
+	// 	}
+	// 	destContext.putImageData(imageData, 0, 0);
+  //
+	// 	//blur
+	// 	stackBlurContextRGBA(destContext, 0, 0, destCanvas.width, destCanvas.height, shadowBlur);
+	// }
   //
 	// function drawShading() {
 	// 	//var grays = [255,220,194,244,191,240,190,146,240,187,240,170];
@@ -1070,68 +1070,68 @@ function canvasApp() {
 	// 	ctx.putImageData(imageData, 0, 0);
 	// }
 
-	function transferAlpha(sourceContext, destContext) {
-		//will only work if contexts come from same-sized canvases.
-		var sourceCanvas = sourceContext.canvas;
-		var sourceImageData = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-		var sourcePixelData = sourceImageData.data;
-		var len = sourcePixelData.length;
-		var destImageData = destContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-		var destPixelData = destImageData.data;
-		var i;
-		for (i = 3; i < len; i += 4) {
-			destPixelData[i] = sourcePixelData[i];
-		}
-		destContext.putImageData(destImageData, 0, 0);
-	}
+	// function transferAlpha(sourceContext, destContext) {
+	// 	//will only work if contexts come from same-sized canvases.
+	// 	var sourceCanvas = sourceContext.canvas;
+	// 	var sourceImageData = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+	// 	var sourcePixelData = sourceImageData.data;
+	// 	var len = sourcePixelData.length;
+	// 	var destImageData = destContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+	// 	var destPixelData = destImageData.data;
+	// 	var i;
+	// 	for (i = 3; i < len; i += 4) {
+	// 		destPixelData[i] = sourcePixelData[i];
+	// 	}
+	// 	destContext.putImageData(destImageData, 0, 0);
+	// }
 
-  function drawExportCanvas() {
-		//draw elements
-		exportCanvasContext.drawImage(displayBackgroundCanvas, 0,0,displayWidth,displayHeight,0,0,displayWidth,displayHeight);
-		exportCanvasContext.drawImage(displayCanvas, 0,0,displayWidth,displayHeight,0,0,displayWidth,displayHeight);
+  // function drawExportCanvas() {
+	// 	//draw elements
+	// 	exportCanvasContext.drawImage(displayBackgroundCanvas, 0,0,displayWidth,displayHeight,0,0,displayWidth,displayHeight);
+	// 	exportCanvasContext.drawImage(displayCanvas, 0,0,displayWidth,displayHeight,0,0,displayWidth,displayHeight);
+  //
+	// 	//add printed url to image
+	// 	exportCanvasContext.fillStyle = urlColor;
+	// 	exportCanvasContext.font = 'bold italic 10px Helvetica, Arial, sans-serif';
+	// 	exportCanvasContext.textBaseline = "top";
+	// 	var caption = "Made with the paper snowflake maker at www.rectangleworld.com";
+	// 	var metrics = exportCanvasContext.measureText(caption);
+	// 	exportCanvasContext.fillText(caption, displayWidth - metrics.width - 20, displayHeight);
+	// }
 
-		//add printed url to image
-		exportCanvasContext.fillStyle = urlColor;
-		exportCanvasContext.font = 'bold italic 10px Helvetica, Arial, sans-serif';
-		exportCanvasContext.textBaseline = "top";
-		var caption = "Made with the paper snowflake maker at www.rectangleworld.com";
-		var metrics = exportCanvasContext.measureText(caption);
-		exportCanvasContext.fillText(caption, displayWidth - metrics.width - 20, displayHeight);
-	}
-
-	function btnSaveListener(evt) {
-		drawExportCanvas();
-    // click to save
-    var dataURL = exportCanvas.toDataURL("image/png");
-    var link = document.createElement("a");
-    link.setAttribute("href", dataURL);
-    link.setAttribute("download", "snowflake");
-    link.click();
-    return;
-
-		//we will open a new window with the image contained within:
-		//retrieve canvas image as data URL:
-		var dataURL = exportCanvas.toDataURL("image/png");
-		//open a new window of appropriate size to hold the image:
-		var windowW = Math.max(exportCanvas.width,500);
-		var windowH = Math.max(exportCanvas.height + 50,500);
-		var imageWindow = window.open("", "snowflakeImage", "left=0,top=0,width="+windowW+",height="+windowH+",toolbar=0,resizable=0");
-		//write some html into the new window, creating an empty image:
-		imageWindow.document.write("<html><head><title>Export Image</title></head><body>")
-		imageWindow.document.write('<p style="font-family: sans-serif; color:#333333; font-size: 10px">Right-click (Win) or control-click (Mac) and select "save image as..." to save this image in PNG format.</p>');
-		imageWindow.document.write("<br/>");
-		imageWindow.document.write("<img id='exportImage'" +
-									" alt='snowflake image'" +
-									" height='" + displayHeight + "px'" +
-									" width='"  + displayWidth  + "px'" +
-									" style='width:" + displayWidth + "px;" +
-									"height:" + displayHeight + "px;position:relative; display:block; margin:auto;'/>");
-		imageWindow.document.write("</body></html>");
-		imageWindow.document.close();
-		//copy the image into the empty img in the newly opened window:
-		var exportImage = imageWindow.document.getElementById("exportImage");
-		exportImage.src = dataURL;
-	}
+	// function btnSaveListener(evt) {
+	// 	drawExportCanvas();
+  //   // click to save
+  //   var dataURL = exportCanvas.toDataURL("image/png");
+  //   var link = document.createElement("a");
+  //   link.setAttribute("href", dataURL);
+  //   link.setAttribute("download", "snowflake");
+  //   link.click();
+  //   return;
+  //
+	// 	//we will open a new window with the image contained within:
+	// 	//retrieve canvas image as data URL:
+	// 	var dataURL = exportCanvas.toDataURL("image/png");
+	// 	//open a new window of appropriate size to hold the image:
+	// 	var windowW = Math.max(exportCanvas.width,500);
+	// 	var windowH = Math.max(exportCanvas.height + 50,500);
+	// 	var imageWindow = window.open("", "snowflakeImage", "left=0,top=0,width="+windowW+",height="+windowH+",toolbar=0,resizable=0");
+	// 	//write some html into the new window, creating an empty image:
+	// 	imageWindow.document.write("<html><head><title>Export Image</title></head><body>")
+	// 	imageWindow.document.write('<p style="font-family: sans-serif; color:#333333; font-size: 10px">Right-click (Win) or control-click (Mac) and select "save image as..." to save this image in PNG format.</p>');
+	// 	imageWindow.document.write("<br/>");
+	// 	imageWindow.document.write("<img id='exportImage'" +
+	// 								" alt='snowflake image'" +
+	// 								" height='" + displayHeight + "px'" +
+	// 								" width='"  + displayWidth  + "px'" +
+	// 								" style='width:" + displayWidth + "px;" +
+	// 								"height:" + displayHeight + "px;position:relative; display:block; margin:auto;'/>");
+	// 	imageWindow.document.write("</body></html>");
+	// 	imageWindow.document.close();
+	// 	//copy the image into the empty img in the newly opened window:
+	// 	var exportImage = imageWindow.document.getElementById("exportImage");
+	// 	exportImage.src = dataURL;
+	// }
 
   function btnLogInListener (evt) {
     firebase.auth().signInWithPopup(provider).then(function(result) {

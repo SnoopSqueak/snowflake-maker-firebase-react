@@ -34,10 +34,6 @@ class SnowflakeMaker extends Component {
     }
   }
 
-  // componentDidMount () {
-  //   Controls.windowLoadHandler();
-  // }
-
   setIndex (index) {
     this.setState({index, gradient: this.gradientBackgrounds[index], color: bgColors[index].start});
   }
@@ -46,8 +42,7 @@ class SnowflakeMaker extends Component {
     return (
       <div>
         <div id="container">
-          <SnowflakeCanvas gradientBackground={this.state.gradient} color={this.state.color} />
-          <CanvasButtons bgColor={bgColors[this.state.index]} bgColors={bgColors} setIndex={this.setIndex.bind(this)} />
+          <SnowflakeCanvas gradientBackground={this.state.gradient} color={this.state.color} bgColors={bgColors} bgColor={bgColors[this.state.index]} setIndex={this.setIndex.bind(this)} />
         </div>
         <div id="container2">
           <SavePanel />

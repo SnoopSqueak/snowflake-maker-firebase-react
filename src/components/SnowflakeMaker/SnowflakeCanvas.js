@@ -8,30 +8,46 @@ class SnowflakeCanvas extends Component {
     this.width = this.props.width || 440;
     this.height = this.props.height || 440;
     this.boardWidth = this.props.boardWidth || 250;
-    this.triangleHyp = 400.0;
-    this.snowflakeRadius = 200.0;
     this.dots = [];
+    this.offScreenCanvases = {};
   }
 
   componentDidMount () {
+    artSupplies.addCurrentBoardToHistory(this.refs.board, this.activateUndo);
     //off screen canvases
     this.createCanvas("shading");
     this.createCanvas("snowflake");
     this.createCanvas("shadow");
     this.createCanvas("buffer");
-    this.mouseTracker = new MouseTracker(this.refs.polys, this.refs.board);
+    this.createCanvas("export");
+    this.mouseTracker = new MouseTracker(this.refs.polys, this.refs.board, this.refs.canvas, this.offScreenCanvases, this);
+    document.getElementById("btnSave").addEventListener("click", this.exportImage.bind(this), false);
     this.drawEverything();
+    const ctx = this.refs.board.getContext('2d');
+    ctx.clearRect(-1,-1,this.boardWidth+2, this.height+2);
+    let bottomPoint = {x: Math.floor(this.boardWidth/2), y: this.height - 20};
+    artSupplies.drawTriangle(ctx, bottomPoint);
+    this.changeShading();
+    this.changeAutoUpdate();
   }
 
   componentDidUpdate (prevProps, prevState, snapshot) {
     this.drawEverything();
   }
 
-  createCanvas (name) {
-    let canvasName = name + "Canvas";
-    this[canvasName] = document.createElement('canvas');
-    this[canvasName].width = this.width;
-    this[canvasName].height = this.height;
+  changeShading () {
+    artSupplies.changeShading(this.refs.shadingCb.checked, this.refs.canvas, this.offScreenCanvases);
+  }
+
+  changeAutoUpdate () {
+    artSupplies.autoUpdate = this.refs.autoUpdateCb.checked;
+  }
+
+  createCanvas (canvasName) {
+    //let canvasName = name + "Canvas";
+    this.offScreenCanvases[canvasName] = document.createElement('canvas');
+    this.offScreenCanvases[canvasName].width = this.width;
+    this.offScreenCanvases[canvasName].height = this.height;
   }
 
   drawEverything () {
@@ -45,8 +61,8 @@ class SnowflakeCanvas extends Component {
                   0, 0, this.width,this.height,
                   0, 0, this.width,this.height);
 
-    const shadingCtx = this.shadingCanvas.getContext('2d');
-    artSupplies.drawShading(shadingCtx, this.snowflakeRadius + 2, -Math.PI/2, Math.PI/6, this.width, this.height);
+    const shadingCtx = this.offScreenCanvases["shading"].getContext('2d');
+    artSupplies.drawShading(shadingCtx, artSupplies.snowflakeRadius + 2, -Math.PI/2, Math.PI/6, this.width, this.height);
   }
 
   updateBoard () {
@@ -54,14 +70,28 @@ class SnowflakeCanvas extends Component {
     bgCtx.fillStyle = this.props.color;
     bgCtx.fillRect(0, 0, this.boardWidth, this.height);
 
-    const ctx = this.refs.board.getContext('2d');
-    ctx.clearRect(-1,-1,this.boardWidth+2, this.height+2);
-    let bottomPoint = {x: Math.floor(this.boardWidth/2), y: this.height - 20};
-    artSupplies.drawTriangle(ctx, bottomPoint, this.triangleHyp);
-
     //const polys = this.refs.polys.getContext('2d');
-
   }
+
+  deactivateUndo () {
+    //btnUndo.style.backgroundColor="#DDD";
+    document.getElementById("btnUndo").className = "button1_inactive";
+  }
+
+  activateUndo () {
+    //btnUndo.style.backgroundColor="#666";
+    document.getElementById("btnUndo").className = "button1";
+  }
+
+  exportImage (evt) {
+		artSupplies.drawExportCanvas(this.offScreenCanvases["export"].getContext('2d'), this.refs.bgCanvas, this.refs.canvas);
+    // click to save
+    var dataURL = this.offScreenCanvases["export"].toDataURL("image/png");
+    var link = document.createElement("a");
+    link.setAttribute("href", dataURL);
+    link.setAttribute("download", "snowflake");
+    link.click();
+	}
 
   render () {
     return (
@@ -74,6 +104,34 @@ class SnowflakeCanvas extends Component {
           <canvas id="polygonLayer" ref="polys" width={`${this.boardWidth}px`} height={`${this.height}px`}></canvas>
           <canvas id="boardCanvas" ref="board" width={`${this.boardWidth}px`} height={`${this.height}px`}></canvas>
           <canvas id="boardBackgroundCanvas" ref="bgBoard" width={`${this.boardWidth}px`} height={`${this.height}px`}></canvas>
+        </div>
+        <div id="buttonPanel">
+            <div id="titleText" style={{"background": this.props.bgColor.start}}>paper snowflake maker</div>
+            <div id="urlText" style={{"background": this.props.bgColor.textBG || this.props.bgColor.end}}><a href="http://rectangleworld.com">by<br/>RectangleWorld</a></div>
+            <div id="urlText2" style={{"background": this.props.bgColor.start}}><a href="http://rectangleworld.com/blog/about" target="_blank" rel="noopener noreferrer">about</a></div>
+            <div id="buttonPanelContent">
+              <div id="colorButtonsLabel">choose a<br/>background:</div>
+              <div id="colorButtonPanel">
+                {
+                  this.props.bgColors.map((bgColor, index) => {
+                    return (
+                      <input type="button" value="" title={bgColor.name} key={index} className="colorButton"
+                        style={{backgroundImage: artSupplies.gradientPrefix + "linear-gradient(" +bgColor.start+ ", " +bgColor.end+ ")"}}
+                        onClick={() => this.props.setIndex(index)}
+                      />
+                    );
+                  })
+                }
+              </div>
+                <ul>
+                  <li><input type="button" className="button1" id="btnAdd" value="add" title="Click to commit the currently drawn polygon (you can also just start drawing a new one)." onClick={() => this.mouseTracker.handleAdd()}/></li>
+                  <li><input type="button" className="button1_inactive" id="btnUndo" value="undo" title="undo" onClick={() => this.mouseTracker.undo(true)}/></li>
+                  <li><input type="button" className="button1" id="btnReset" value="reset" title="start over" onClick={() => this.mouseTracker.handleReset(this.refs.canvas)} /></li>
+                  <li><input type="button" className="button1" id="btnMakeSnowflake" value="make snowflake!" style={{"fontWeight":"bold", "whiteSpace":"normal"}} title="See your snowflake!" onClick={() => artSupplies.drawSnowflake(this.refs.board, this.refs.canvas, this.offScreenCanvases)}/></li>
+                  <li><label title="Creates a folded paper appearance."><input ref="shadingCb" type="checkbox" className="checkbox1" id="cbShading" defaultChecked="" onChange={(e) => this.changeShading()} checked={true}/>shading on</label></li>
+                  <li><label title="Causes the snowflake to be redrawn every time you change the triangle."><input ref="autoUpdateCb" type="checkbox" className="checkbox1" id="cbAutoUpdate" onChange={(e) => this.changeAutoUpdate()} checked={true}/>auto update</label></li>
+                </ul>
+            </div>
         </div>
       </div>
     );

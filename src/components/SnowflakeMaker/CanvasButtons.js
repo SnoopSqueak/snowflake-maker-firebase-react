@@ -45,7 +45,7 @@ class CanvasButtons extends Component {
               }
             </div>
               <ul>
-                <li><input type="button" className="button1" id="btnAdd" value="add" title="Click to commit the currently drawn polygon (you can also just start drawing a new one)."/></li>
+                <li><input type="button" className="button1" id="btnAdd" value="add" title="Click to commit the currently drawn polygon (you can also just start drawing a new one)." onClick={this.handleAdd.bind(this)}/></li>
                 <li><input type="button" className="button1_inactive" id="btnUndo" value="undo" title="undo"/></li>
                 <li><input type="button" className="button1" id="btnReset" value="reset" title="start over"/></li>
                 <li><input type="button" className="button1" id="btnMakeSnowflake" value="make snowflake!" style={{"fontWeight":"bold", "whiteSpace":"normal"}} title="See your snowflake!"/></li>
