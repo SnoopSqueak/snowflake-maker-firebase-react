@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import artSupplies from './artSupplies';
 import MouseTracker from './MouseTracker';
+import * as firebase from 'firebase';
 
 class SnowflakeCanvas extends Component {
   constructor (props) {
@@ -10,6 +11,9 @@ class SnowflakeCanvas extends Component {
     this.boardWidth = this.props.boardWidth || 250;
     this.dots = [];
     this.offScreenCanvases = {};
+    this.provider = new firebase.auth.GoogleAuthProvider();
+    this.logIn = this.logIn.bind(this);
+    this.logOut = this.logOut.bind(this);
   }
 
   componentDidMount () {
@@ -22,6 +26,7 @@ class SnowflakeCanvas extends Component {
     this.createCanvas("export");
     this.mouseTracker = new MouseTracker(this.refs.polys, this.refs.board, this.refs.canvas, this.offScreenCanvases, this);
     document.getElementById("btnSave").addEventListener("click", this.exportImage.bind(this), false);
+    document.getElementById("btnLogIn").addEventListener("click", this.logIn, false);
     this.drawEverything();
     const ctx = this.refs.board.getContext('2d');
     ctx.clearRect(-1,-1,this.boardWidth+2, this.height+2);
@@ -93,6 +98,45 @@ class SnowflakeCanvas extends Component {
     link.click();
 	}
 
+  logOut (evt) {
+    firebase.auth().signOut().then((result) => {
+      this.setState({user: null});
+      this.token = null;
+      document.getElementById("logInStatus").innerText = "(Not logged in)";
+      document.getElementById("btnLogIn").addEventListener("click", this.logIn, false);
+      document.getElementById("btnLogIn").removeEventListener("click", this.logOut, false);
+      document.getElementById("btnLogIn").innerText = "Log in with Google"
+    }).catch((e) => {
+      console.log("There was an error while trying to log out. Error object on next line:");
+      console.log(e);
+    });
+  }
+
+  logIn (evt) {
+    firebase.auth().signInWithPopup(this.provider).then((result) => {
+      // This gives you a Google Access Token. You can use it to access the Google API.
+      this.token = result.credential.accessToken;
+      // The signed-in user info.
+      this.setState({user: result.user});
+      console.log(result.user);
+      document.getElementById("logInStatus").innerText = "(Logged in as: " + result.user.displayName + ")";
+      document.getElementById("btnLogIn").removeEventListener("click", this.logIn, false);
+      document.getElementById("btnLogIn").addEventListener("click", this.logOut, false);
+      document.getElementById("btnLogIn").innerText = "Log out"
+      // ...
+    }).catch((error) => {
+      // Handle Errors here.
+      var errorCode = error.code;
+      var errorMessage = error.message;
+      // The email of the user's account used.
+      var email = error.email;
+      // The firebase.auth.AuthCredential type that was used.
+      var credential = error.credential;
+      // ...
+      console.log("There was an error while trying to log in. It might be nothing... here's the message: " + errorMessage);
+    });
+  }
+
   render () {
     return (
       <div>
@@ -128,7 +172,7 @@ class SnowflakeCanvas extends Component {
                   <li><input type="button" className="button1_inactive" id="btnUndo" value="undo" title="undo" onClick={() => this.mouseTracker.undo(true)}/></li>
                   <li><input type="button" className="button1" id="btnReset" value="reset" title="start over" onClick={() => this.mouseTracker.handleReset(this.refs.canvas)} /></li>
                   <li><input type="button" className="button1" id="btnMakeSnowflake" value="make snowflake!" style={{"fontWeight":"bold", "whiteSpace":"normal"}} title="See your snowflake!" onClick={() => artSupplies.drawSnowflake(this.refs.board, this.refs.canvas, this.offScreenCanvases)}/></li>
-                  <li><label title="Creates a folded paper appearance."><input ref="shadingCb" type="checkbox" className="checkbox1" id="cbShading" defaultChecked="" onChange={(e) => this.changeShading()} checked={true}/>shading on</label></li>
+                  <li><label title="Creates a folded paper appearance."><input ref="shadingCb" type="checkbox" className="checkbox1" id="cbShading" onChange={(e) => this.changeShading()} checked={true}/>shading on</label></li>
                   <li><label title="Causes the snowflake to be redrawn every time you change the triangle."><input ref="autoUpdateCb" type="checkbox" className="checkbox1" id="cbAutoUpdate" onChange={(e) => this.changeAutoUpdate()} checked={true}/>auto update</label></li>
                 </ul>
             </div>

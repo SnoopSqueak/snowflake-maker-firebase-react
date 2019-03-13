@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import SnowflakeCanvas from './SnowflakeCanvas';
-import CanvasButtons from './CanvasButtons';
 import SavePanel from './SavePanel';
 import bgColors from './bgColors';
 import hexToRgb from './hexToRgb';
@@ -42,7 +41,7 @@ class SnowflakeMaker extends Component {
     return (
       <div>
         <div id="container">
-          <SnowflakeCanvas gradientBackground={this.state.gradient} color={this.state.color} bgColors={bgColors} bgColor={bgColors[this.state.index]} setIndex={this.setIndex.bind(this)} />
+          <SnowflakeCanvas firebase={this.props.firebase} gradientBackground={this.state.gradient} color={this.state.color} bgColors={bgColors} bgColor={bgColors[this.state.index]} setIndex={this.setIndex.bind(this)} />
         </div>
         <div id="container2">
           <SavePanel />
