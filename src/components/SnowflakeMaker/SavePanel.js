@@ -7,10 +7,14 @@ class SavePanel extends Component {
       <div id="infoPanel">
         <div id="saveButtonsHolder">
           <div id="savePanel">
-            <div style={{width: "50%", height: "100%", padding: "0", margin: "0", display: "inline-block", transform: "translateY(-50%)"}}>
-              <button id="btnLogIn" className="save">Log in with Google</button>
-              <div id="logInStatus" style={{color: "black", textAlign: "center"}}>(Not logged in)</div>
-            </div>
+            {
+              /*
+              <div style={{width: "50%", height: "100%", padding: "0", margin: "0", display: "inline-block", transform: "translateY(-50%)"}}>
+                <button id="btnLogIn" className="save">Log in with Google</button>
+                <div id="logInStatus" style={{color: "black", textAlign: "center"}}>(Not logged in)</div>
+              </div>
+              */
+            }
             <div style={{width: "50%", height: "100%", padding: "0", margin: "0", display: "inline-block"}}>
               <button id="btnSave" className="save">Save image to your computer</button>
                 <div style={{color: "black", marginRight: "75px"}}>OR</div>

@@ -11,12 +11,20 @@ class SnowflakeCanvas extends Component {
     this.boardWidth = this.props.boardWidth || 250;
     this.dots = [];
     this.offScreenCanvases = {};
-    this.provider = new firebase.auth.GoogleAuthProvider();
-    this.logIn = this.logIn.bind(this);
-    this.logOut = this.logOut.bind(this);
+    this.provider = this.props.provider;
+    //this.provider = new firebase.auth.GoogleAuthProvider();
+    // this.logIn = this.logIn.bind(this);
+    // this.logOut = this.logOut.bind(this);
+    this.saveFirebase = this.saveFirebase.bind(this);
+    this.exportImage = this.exportImage.bind(this);
+    this.usersRef = this.props.firebase.database().ref('users');
+    this.snowflakesRef = this.props.firebase.database().ref('snowflakes');
+    this.currentSnowflake = null;
   }
 
   componentDidMount () {
+    this.currentSnowflake = this.props.currentSnowflake;
+    console.log(this.currentSnowflake);
     artSupplies.addCurrentBoardToHistory(this.refs.board, this.activateUndo);
     //off screen canvases
     this.createCanvas("shading");
@@ -24,16 +32,44 @@ class SnowflakeCanvas extends Component {
     this.createCanvas("shadow");
     this.createCanvas("buffer");
     this.createCanvas("export");
-    this.mouseTracker = new MouseTracker(this.refs.polys, this.refs.board, this.refs.canvas, this.offScreenCanvases, this);
-    document.getElementById("btnSave").addEventListener("click", this.exportImage.bind(this), false);
-    document.getElementById("btnLogIn").addEventListener("click", this.logIn, false);
+    this.createCanvas("exportBoard");
+    if (!this.mouseTracker) this.mouseTracker = new MouseTracker(this.refs.polys, this.refs.board, this.refs.canvas, this.offScreenCanvases, this);
+    document.getElementById("btnSave").addEventListener("click", this.exportImage, false);
+    //document.getElementById("btnLogIn").addEventListener("click", this.logIn, false);
+    document.getElementById("btnSaveFirebase").addEventListener("click", this.saveFirebase, false);
     this.drawEverything();
     const ctx = this.refs.board.getContext('2d');
     ctx.clearRect(-1,-1,this.boardWidth+2, this.height+2);
-    let bottomPoint = {x: Math.floor(this.boardWidth/2), y: this.height - 20};
-    artSupplies.drawTriangle(ctx, bottomPoint);
+    if (this.currentSnowflake) {
+      let sf = this.snowflakesRef.child(this.currentSnowflake).once('value')
+      .then((snapshot) => {
+        var img = new Image;
+        img.src = snapshot.val().data;
+        console.log(snapshot.val().data);
+        // why does this break the app..? Attempting to draw more polys after
+        //   this point results in weird behavior regarding the board, and the
+        //   canvas reflects that when you make a snowflake...
+        img.onload = () => {
+          console.log("Drawing old snowflake...");
+          //this.refs.board.getContext('2d').clearRect(-1,-1,this.refs.board.width+2,this.refs.board.height+2);
+          this.refs.board.getContext('2d').drawImage(img, 0, 0);
+          artSupplies.history = {};
+          artSupplies.historyLength = 0;
+          artSupplies.addCurrentBoardToHistory(this.refs.board, this.activateUndo);
+          this.drawSnowflake();
+        }
+      });
+    } else {
+      let bottomPoint = {x: Math.floor(this.boardWidth/2), y: this.height - 20};
+      artSupplies.drawTriangle(ctx, bottomPoint);
+    }
     this.changeShading();
     this.changeAutoUpdate();
+  }
+
+  componentWillUnmount () {
+    document.getElementById("btnSave").removeEventListener("click", this.exportImage, false);
+    document.getElementById("btnSaveFirebase").removeEventListener("click", this.saveFirebase, false);
   }
 
   componentDidUpdate (prevProps, prevState, snapshot) {
@@ -50,6 +86,7 @@ class SnowflakeCanvas extends Component {
 
   createCanvas (canvasName) {
     //let canvasName = name + "Canvas";
+    if (this.offScreenCanvases[canvasName]) return;
     this.offScreenCanvases[canvasName] = document.createElement('canvas');
     this.offScreenCanvases[canvasName].width = this.width;
     this.offScreenCanvases[canvasName].height = this.height;
@@ -89,6 +126,7 @@ class SnowflakeCanvas extends Component {
   }
 
   exportImage (evt) {
+    this.drawSnowflake();
 		artSupplies.drawExportCanvas(this.offScreenCanvases["export"].getContext('2d'), this.refs.bgCanvas, this.refs.canvas);
     // click to save
     var dataURL = this.offScreenCanvases["export"].toDataURL("image/png");
@@ -98,43 +136,72 @@ class SnowflakeCanvas extends Component {
     link.click();
 	}
 
-  logOut (evt) {
-    firebase.auth().signOut().then((result) => {
-      this.setState({user: null});
-      this.token = null;
-      document.getElementById("logInStatus").innerText = "(Not logged in)";
-      document.getElementById("btnLogIn").addEventListener("click", this.logIn, false);
-      document.getElementById("btnLogIn").removeEventListener("click", this.logOut, false);
-      document.getElementById("btnLogIn").innerText = "Log in with Google"
-    }).catch((e) => {
-      console.log("There was an error while trying to log out. Error object on next line:");
-      console.log(e);
-    });
+  saveFirebase () {
+    if (!firebase.auth().currentUser) {
+      alert("Please log in to use the database. Only your Google account's unique ID will be stored to the database, not your email or name. Anyone with the UID could find your profile and any public information on it.");
+    } else {
+      this.drawSnowflake();
+      artSupplies.drawExportCanvas(this.offScreenCanvases["export"].getContext('2d'), this.refs.bgCanvas, this.refs.canvas);
+      artSupplies.drawExportCanvas(this.offScreenCanvases["exportBoard"].getContext('2d'), null, this.refs.board);
+      // click to save
+      var imgURL = this.offScreenCanvases["export"].toDataURL("image/png");
+      var dataURL = this.offScreenCanvases["exportBoard"].toDataURL("image/png");
+      //var dataURL = this.refs.polys.toDataURL("image/png");
+      if (!this.currentSnowflake) {
+        this.snowflakesRef.push({
+          image: imgURL,
+          data: dataURL,
+          user: firebase.auth().currentUser.uid,
+          public: true
+        }).then((res) => {
+          //console.log(res);
+          this.currentSnowflake = res.key;
+          alert("Saved new snowflake!");
+        }).catch((e) => {
+          alert("Error while saving snowflake, check the console for more information.");
+          console.log(e);
+        });
+      } else {
+        // Make sure the user's ID matches, otherwise create a new snowflake instead
+        let sf = this.snowflakesRef.child(this.currentSnowflake).once('value').then((snapshot) => {
+          let errorCallback = (e) => {
+            alert("Error while saving snowflake, check the console for more information.");
+            console.log(e);
+          };
+          console.log(snapshot.val().user + " vs " + firebase.auth().currentUser.uid);
+          if (snapshot.val().user !== firebase.auth().currentUser.uid) {
+            this.snowflakesRef.push({
+              image: imgURL,
+              data: dataURL,
+              user: firebase.auth().currentUser.uid,
+              public: true
+            }).then((res) => {
+              this.currentSnowflake = res.key;
+              console.log(this.currentSnowflake);
+              alert("Saved new snowflake!");
+            }).catch(errorCallback);
+          } else {
+            this.snowflakesRef.child(this.currentSnowflake).set({
+              image: imgURL,
+              data: dataURL,
+              user: firebase.auth().currentUser.uid,
+              public: true
+            }).then((res) => {
+              alert("Saved snowflake, overwrote old data.");
+            }).catch(errorCallback);
+          }
+        });
+      }
+    }
   }
 
-  logIn (evt) {
-    firebase.auth().signInWithPopup(this.provider).then((result) => {
-      // This gives you a Google Access Token. You can use it to access the Google API.
-      this.token = result.credential.accessToken;
-      // The signed-in user info.
-      this.setState({user: result.user});
-      console.log(result.user);
-      document.getElementById("logInStatus").innerText = "(Logged in as: " + result.user.displayName + ")";
-      document.getElementById("btnLogIn").removeEventListener("click", this.logIn, false);
-      document.getElementById("btnLogIn").addEventListener("click", this.logOut, false);
-      document.getElementById("btnLogIn").innerText = "Log out"
-      // ...
-    }).catch((error) => {
-      // Handle Errors here.
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      // The email of the user's account used.
-      var email = error.email;
-      // The firebase.auth.AuthCredential type that was used.
-      var credential = error.credential;
-      // ...
-      console.log("There was an error while trying to log in. It might be nothing... here's the message: " + errorMessage);
-    });
+  drawSnowflake () {
+    artSupplies.drawSnowflake(this.refs.board, this.refs.canvas, this.offScreenCanvases)
+  }
+
+  handleReset () {
+    this.currentSnowflake = null;
+    this.mouseTracker.handleReset(this.refs.canvas);
   }
 
   render () {
@@ -170,10 +237,10 @@ class SnowflakeCanvas extends Component {
                 <ul>
                   <li><input type="button" className="button1" id="btnAdd" value="add" title="Click to commit the currently drawn polygon (you can also just start drawing a new one)." onClick={() => this.mouseTracker.handleAdd()}/></li>
                   <li><input type="button" className="button1_inactive" id="btnUndo" value="undo" title="undo" onClick={() => this.mouseTracker.undo(true)}/></li>
-                  <li><input type="button" className="button1" id="btnReset" value="reset" title="start over" onClick={() => this.mouseTracker.handleReset(this.refs.canvas)} /></li>
-                  <li><input type="button" className="button1" id="btnMakeSnowflake" value="make snowflake!" style={{"fontWeight":"bold", "whiteSpace":"normal"}} title="See your snowflake!" onClick={() => artSupplies.drawSnowflake(this.refs.board, this.refs.canvas, this.offScreenCanvases)}/></li>
-                  <li><label title="Creates a folded paper appearance."><input ref="shadingCb" type="checkbox" className="checkbox1" id="cbShading" onChange={(e) => this.changeShading()} checked={true}/>shading on</label></li>
-                  <li><label title="Causes the snowflake to be redrawn every time you change the triangle."><input ref="autoUpdateCb" type="checkbox" className="checkbox1" id="cbAutoUpdate" onChange={(e) => this.changeAutoUpdate()} checked={true}/>auto update</label></li>
+                  <li><input type="button" className="button1" id="btnReset" value="new snowflake" title="start over" onClick={() => this.handleReset()} /></li>
+                  <li><input type="button" className="button1" id="btnMakeSnowflake" value="make snowflake!" style={{"fontWeight":"bold", "whiteSpace":"normal"}} title="See your snowflake!" onClick={() => this.drawSnowflake()}/></li>
+                  <li><label title="Creates a folded paper appearance."><input ref="shadingCb" type="checkbox" className="checkbox1" id="cbShading" onChange={(e) => this.changeShading()} defaultChecked={true}/>shading on</label></li>
+                  <li><label title="Causes the snowflake to be redrawn every time you change the triangle."><input ref="autoUpdateCb" type="checkbox" className="checkbox1" id="cbAutoUpdate" onChange={(e) => this.changeAutoUpdate()} defaultChecked={true}/>auto update</label></li>
                 </ul>
             </div>
         </div>

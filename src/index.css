@@ -8,13 +8,33 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+nav ul {
+  width: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  background-color: grey;
+  padding: 10px;
+  text-align: center;
+}
+
+nav ul li {
+  display: inline;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+nav ul li a {
+  color: white;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
 	body {
 		//margin: 0px;
-		margin-top:15px;
+		//margin-top:15px;
 		background-color:#ffffff;
 		color:#333333;
 	}
@@ -23,6 +43,10 @@ code {
 	p {font-family: sans-serif; color:#333333; font-size:14px;}
 
 	a {font-family: sans-serif; color:#d15423; text-decoration:none;}
+
+  #contents {
+    padding-top: 10px;
+  }
 
 	#grandContainer {
 		width: 1060px;

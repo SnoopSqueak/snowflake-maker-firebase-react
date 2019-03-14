@@ -34,7 +34,7 @@ class MouseTracker {
   }
 
   handleReset (displayCanvas) {
-    if (window.confirm('Do you really want to erase everything and start over?')) {
+    if (window.confirm('Lose any changes since last save and start a new snowflake?')) {
       if (this.drawing) {
         //cancelDrawing();
         this.handleAdd();

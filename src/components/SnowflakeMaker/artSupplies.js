@@ -214,16 +214,18 @@ export default (() => {
 
   instance.drawExportCanvas = function (exportCanvasContext, displayBackgroundCanvas, displayCanvas) {
     //draw elements
-    exportCanvasContext.drawImage(displayBackgroundCanvas, 0,0,displayCanvas.width,displayCanvas.height,0,0,displayCanvas.width,displayCanvas.height);
+    if (displayBackgroundCanvas != null) {
+      exportCanvasContext.drawImage(displayBackgroundCanvas, 0,0,displayBackgroundCanvas.width,displayBackgroundCanvas.height,0,0,displayBackgroundCanvas.width,displayBackgroundCanvas.height);
+    }
     exportCanvasContext.drawImage(displayCanvas, 0,0,displayCanvas.width,displayCanvas.height,0,0,displayCanvas.width,displayCanvas.height);
 
     //add printed url to image
-    exportCanvasContext.fillStyle = instance.urlColor;
-    exportCanvasContext.font = 'bold italic 10px Helvetica, Arial, sans-serif';
-    exportCanvasContext.textBaseline = "top";
-    var caption = "Made with the paper snowflake maker at www.rectangleworld.com";
-    var metrics = exportCanvasContext.measureText(caption);
-    exportCanvasContext.fillText(caption, displayCanvas.width - metrics.width - 20, displayCanvas.height);
+    // exportCanvasContext.fillStyle = instance.urlColor;
+    // exportCanvasContext.font = 'bold italic 10px Helvetica, Arial, sans-serif';
+    // exportCanvasContext.textBaseline = "top";
+    // var caption = "Made with the paper snowflake maker at www.rectangleworld.com";
+    // var metrics = exportCanvasContext.measureText(caption);
+    // exportCanvasContext.fillText(caption, displayCanvas.width - metrics.width - 20, displayCanvas.height);
   }
 
   instance.changeShading = function (checked, displayCanvas, offScreenCanvases) {

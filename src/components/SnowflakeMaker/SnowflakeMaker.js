@@ -41,7 +41,7 @@ class SnowflakeMaker extends Component {
     return (
       <div>
         <div id="container">
-          <SnowflakeCanvas firebase={this.props.firebase} gradientBackground={this.state.gradient} color={this.state.color} bgColors={bgColors} bgColor={bgColors[this.state.index]} setIndex={this.setIndex.bind(this)} />
+          <SnowflakeCanvas currentSnowflake={this.props.location.state ? this.props.location.state.currentSnowflake : null} provider={this.props.provider} firebase={this.props.firebase} gradientBackground={this.state.gradient} color={this.state.color} bgColors={bgColors} bgColor={bgColors[this.state.index]} setIndex={this.setIndex.bind(this)} />
         </div>
         <div id="container2">
           <SavePanel />

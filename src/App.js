@@ -2,26 +2,61 @@ import React, { Component } from 'react';
 import './App.css';
 import SnowflakeMaker from './components/SnowflakeMaker/SnowflakeMaker';
 import * as firebase from 'firebase';
+import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import Landing from './components/Landing';
+import LogIn from './components/LogIn';
+import SnowflakeBrowser from './components/SnowflakeBrowser';
+
+// Initialize Firebase
+let config = {
+  apiKey: "AIzaSyDU4Ng4DN6kd_e2lWrf5-tNwhfs8bnD3KM",
+  authDomain: "fir-demo-react.firebaseapp.com",
+  databaseURL: "https://fir-demo-react.firebaseio.com",
+  projectId: "fir-demo-react",
+  storageBucket: "fir-demo-react.appspot.com",
+  messagingSenderId: "512547763270"
+};
+firebase.initializeApp(config);
 
 class App extends Component {
   constructor (props) {
     super(props);
-    // Initialize Firebase
-    let config = {
-      apiKey: "AIzaSyDU4Ng4DN6kd_e2lWrf5-tNwhfs8bnD3KM",
-      authDomain: "fir-demo-react.firebaseapp.com",
-      databaseURL: "https://fir-demo-react.firebaseio.com",
-      projectId: "fir-demo-react",
-      storageBucket: "fir-demo-react.appspot.com",
-      messagingSenderId: "512547763270"
-    };
-    firebase.initializeApp(config);
+    this.provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().onAuthStateChanged((e) => this.forceUpdate());
   }
 
   render() {
     return (
       <div className="App">
-        <SnowflakeMaker firebase={firebase} />
+        <Router>
+          <div>
+            <nav className="navbar">
+              <ul>
+                <li>
+                  <Link to="/">Home</Link>
+                </li>
+                <li>
+                  <Link to="/make">Make a Snowflake</Link>
+                </li>
+                <li>
+                  <Link to="/browse">Browse Snowflakes</Link>
+                </li>
+                <li>
+                  <LogIn setUser={(user) => this.setUser(user)} firebase={firebase} provider={this.provider} user={firebase.auth().currentUser}/>
+                </li>
+              </ul>
+            </nav>
+            <div id="contents">
+              <Route path="/" exact component={Landing}/>
+              <Route path="/make" render={props => (
+                  <SnowflakeMaker {...props} firebase={firebase} provider={this.provider}/>
+              )}/>
+              <Route path="/browse" render={props => (
+                  <SnowflakeBrowser {...props} firebase={firebase}/>
+              )}/>
+            </div>
+          </div>
+        </Router>
       </div>
     );
   }
