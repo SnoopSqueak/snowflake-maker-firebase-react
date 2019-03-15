@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import artSupplies from './artSupplies';
 import MouseTracker from './MouseTracker';
-import * as firebase from 'firebase';
+//import * as firebase from 'firebase';
 
 class SnowflakeCanvas extends Component {
   constructor (props) {
@@ -12,9 +12,6 @@ class SnowflakeCanvas extends Component {
     this.dots = [];
     this.offScreenCanvases = {};
     this.provider = this.props.provider;
-    //this.provider = new firebase.auth.GoogleAuthProvider();
-    // this.logIn = this.logIn.bind(this);
-    // this.logOut = this.logOut.bind(this);
     this.saveFirebase = this.saveFirebase.bind(this);
     this.exportImage = this.exportImage.bind(this);
     this.usersRef = this.props.firebase.database().ref('users');
@@ -23,8 +20,7 @@ class SnowflakeCanvas extends Component {
   }
 
   componentDidMount () {
-    this.currentSnowflake = this.props.currentSnowflake;
-    console.log(this.currentSnowflake);
+    this.currentSnowflake = this.props.linkState ? this.props.linkState.currentSnowflake : null;
     artSupplies.addCurrentBoardToHistory(this.refs.board, this.activateUndo);
     //off screen canvases
     this.createCanvas("shading");
@@ -35,28 +31,25 @@ class SnowflakeCanvas extends Component {
     this.createCanvas("exportBoard");
     if (!this.mouseTracker) this.mouseTracker = new MouseTracker(this.refs.polys, this.refs.board, this.refs.canvas, this.offScreenCanvases, this);
     document.getElementById("btnSave").addEventListener("click", this.exportImage, false);
-    //document.getElementById("btnLogIn").addEventListener("click", this.logIn, false);
     document.getElementById("btnSaveFirebase").addEventListener("click", this.saveFirebase, false);
     this.drawEverything();
     const ctx = this.refs.board.getContext('2d');
     ctx.clearRect(-1,-1,this.boardWidth+2, this.height+2);
     if (this.currentSnowflake) {
-      let sf = this.snowflakesRef.child(this.currentSnowflake).once('value')
+      this.snowflakesRef.child(this.currentSnowflake).once('value')
       .then((snapshot) => {
-        var img = new Image;
+        this.props.setIndex(snapshot.val().color);
+        var img = new Image();
         img.src = snapshot.val().data;
-        console.log(snapshot.val().data);
-        // why does this break the app..? Attempting to draw more polys after
-        //   this point results in weird behavior regarding the board, and the
-        //   canvas reflects that when you make a snowflake...
         img.onload = () => {
-          console.log("Drawing old snowflake...");
-          //this.refs.board.getContext('2d').clearRect(-1,-1,this.refs.board.width+2,this.refs.board.height+2);
           this.refs.board.getContext('2d').drawImage(img, 0, 0);
           artSupplies.history = {};
           artSupplies.historyLength = 0;
           artSupplies.addCurrentBoardToHistory(this.refs.board, this.activateUndo);
           this.drawSnowflake();
+          if (this.props.linkState.copy) {
+            this.currentSnowflake = null;
+          }
         }
       });
     } else {
@@ -85,7 +78,6 @@ class SnowflakeCanvas extends Component {
   }
 
   createCanvas (canvasName) {
-    //let canvasName = name + "Canvas";
     if (this.offScreenCanvases[canvasName]) return;
     this.offScreenCanvases[canvasName] = document.createElement('canvas');
     this.offScreenCanvases[canvasName].width = this.width;
@@ -111,17 +103,13 @@ class SnowflakeCanvas extends Component {
     const bgCtx = this.refs.bgBoard.getContext('2d');
     bgCtx.fillStyle = this.props.color;
     bgCtx.fillRect(0, 0, this.boardWidth, this.height);
-
-    //const polys = this.refs.polys.getContext('2d');
   }
 
   deactivateUndo () {
-    //btnUndo.style.backgroundColor="#DDD";
     document.getElementById("btnUndo").className = "button1_inactive";
   }
 
   activateUndo () {
-    //btnUndo.style.backgroundColor="#666";
     document.getElementById("btnUndo").className = "button1";
   }
 
@@ -137,24 +125,23 @@ class SnowflakeCanvas extends Component {
 	}
 
   saveFirebase () {
-    if (!firebase.auth().currentUser) {
+    if (!this.props.firebase.auth().currentUser) {
       alert("Please log in to use the database. Only your Google account's unique ID will be stored to the database, not your email or name. Anyone with the UID could find your profile and any public information on it.");
     } else {
+      // hopefully this will prevent the occasional broken snowflake...
+      this.mouseTracker.handleAdd();
       this.drawSnowflake();
       artSupplies.drawExportCanvas(this.offScreenCanvases["export"].getContext('2d'), this.refs.bgCanvas, this.refs.canvas);
       artSupplies.drawExportCanvas(this.offScreenCanvases["exportBoard"].getContext('2d'), null, this.refs.board);
-      // click to save
       var imgURL = this.offScreenCanvases["export"].toDataURL("image/png");
       var dataURL = this.offScreenCanvases["exportBoard"].toDataURL("image/png");
-      //var dataURL = this.refs.polys.toDataURL("image/png");
       if (!this.currentSnowflake) {
         this.snowflakesRef.push({
           image: imgURL,
           data: dataURL,
-          user: firebase.auth().currentUser.uid,
-          public: true
+          user: this.props.firebase.auth().currentUser.uid,
+          color: this.props.colorIndex
         }).then((res) => {
-          //console.log(res);
           this.currentSnowflake = res.key;
           alert("Saved new snowflake!");
         }).catch((e) => {
@@ -163,29 +150,29 @@ class SnowflakeCanvas extends Component {
         });
       } else {
         // Make sure the user's ID matches, otherwise create a new snowflake instead
-        let sf = this.snowflakesRef.child(this.currentSnowflake).once('value').then((snapshot) => {
+        this.snowflakesRef.child(this.currentSnowflake).once('value').then((snapshot) => {
           let errorCallback = (e) => {
             alert("Error while saving snowflake, check the console for more information.");
             console.log(e);
           };
-          console.log(snapshot.val().user + " vs " + firebase.auth().currentUser.uid);
-          if (snapshot.val().user !== firebase.auth().currentUser.uid) {
+          //console.log(snapshot.val().user + " vs " + firebase.auth().currentUser.uid);
+          if (snapshot.val().user !== this.props.firebase.auth().currentUser.uid) {
             this.snowflakesRef.push({
               image: imgURL,
               data: dataURL,
-              user: firebase.auth().currentUser.uid,
-              public: true
+              user: this.props.firebase.auth().currentUser.uid,
+              color: this.props.colorIndex
             }).then((res) => {
               this.currentSnowflake = res.key;
-              console.log(this.currentSnowflake);
+              //console.log(this.currentSnowflake);
               alert("Saved new snowflake!");
             }).catch(errorCallback);
           } else {
             this.snowflakesRef.child(this.currentSnowflake).set({
               image: imgURL,
               data: dataURL,
-              user: firebase.auth().currentUser.uid,
-              public: true
+              user: this.props.firebase.auth().currentUser.uid,
+              color: this.props.colorIndex
             }).then((res) => {
               alert("Saved snowflake, overwrote old data.");
             }).catch(errorCallback);

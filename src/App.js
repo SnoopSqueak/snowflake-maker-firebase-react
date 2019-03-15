@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import Landing from './components/Landing';
 import LogIn from './components/LogIn';
 import SnowflakeBrowser from './components/SnowflakeBrowser';
+import DeleteFlake from './components/DeleteFlake';
 
 // Initialize Firebase
 let config = {
@@ -22,7 +23,15 @@ class App extends Component {
   constructor (props) {
     super(props);
     this.provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().onAuthStateChanged((e) => this.forceUpdate());
+
+  }
+
+  componentDidMount () {
+    firebase.auth().onAuthStateChanged(this.handleAuthChange.bind(this));
+  }
+
+  handleAuthChange () {
+    this.forceUpdate();
   }
 
   render() {
@@ -42,7 +51,7 @@ class App extends Component {
                   <Link to="/browse">Browse Snowflakes</Link>
                 </li>
                 <li>
-                  <LogIn setUser={(user) => this.setUser(user)} firebase={firebase} provider={this.provider} user={firebase.auth().currentUser}/>
+                  <LogIn firebase={firebase} provider={this.provider} user={firebase.auth().currentUser}/>
                 </li>
               </ul>
             </nav>
@@ -53,6 +62,9 @@ class App extends Component {
               )}/>
               <Route path="/browse" render={props => (
                   <SnowflakeBrowser {...props} firebase={firebase}/>
+              )}/>
+              <Route path="/delete" render={props => (
+                  <DeleteFlake {...props} firebase={firebase}/>
               )}/>
             </div>
           </div>

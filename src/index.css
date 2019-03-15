@@ -92,7 +92,7 @@ code {
 		height: 440px;
 	}
 	#buttonPanelContent {
-		position:absolute;
+		//position:absolute;
 		bottom:0px;
 		float: left;
 		width:100px;

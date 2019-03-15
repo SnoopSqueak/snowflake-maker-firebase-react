@@ -24,8 +24,8 @@ class LogIn extends Component {
       // The signed-in user info.
       //this.user = result.user;
       //this.uid = result.user.uid;
-      console.log(result.user);
-      this.props.setUser(result.user);
+      //console.log(result.user);
+      //this.props.setUser(result.user);
       //document.getElementById("logInStatus").innerText = "(Logged in as: " + this.props.firebase.auth().currentUser.displayName + ")";
       //document.getElementById("btnLogIn").removeEventListener("click", this.logIn, false);
       //document.getElementById("btnLogIn").addEventListener("click", this.logOut, false);
@@ -57,7 +57,7 @@ class LogIn extends Component {
   }
 
   render () {
-    console.log(this.props.firebase.auth().currentUser);
+    //console.log(this.props.firebase.auth().currentUser);
     return (
       this.props.user ? this.getLogOutButton() : this.getLogInButton()
     );

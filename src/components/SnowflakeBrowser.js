@@ -1,16 +1,26 @@
 import React, { Component } from 'react';
 import './SnowflakeBrowser.css';
 import { Link } from "react-router-dom";
+import UserFlake from './UserFlake';
 
 class SnowflakeBrowser extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      userFlakes: [],
-      publicFlakes: []
+      snowflakes: []
     }
+    this.width = 200;
+    this.height = 200;
     this.snowflakesRef = this.props.firebase.database().ref('snowflakes');
     this.snowflakeAdded = this.snowflakeAdded.bind(this);
+    this.userFlakeCanvas = document.createElement('canvas');
+    this.userFlakeCanvas.width = this.width;
+    this.userFlakeCanvas.height = this.height;
+    let ctx = this.userFlakeCanvas.getContext('2d');
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, this.width, this.height);
+    ctx.save();
   }
 
   componentDidMount () {
@@ -22,40 +32,63 @@ class SnowflakeBrowser extends Component {
   }
 
   snowflakeAdded (snapshot) {
-    this.setState({publicFlakes: [...this.state.publicFlakes, snapshot]})
+    this.setState({snowflakes: [...this.state.snowflakes, snapshot]});
   }
 
-  mySnowflakes () {
-    if (this.props.firebase.auth().currentUser) {
-      // query user's snowflakes... if none, show a message; if some, show them.
+  handleMouseEnter (index) {
+    this.setState({hoveredFlake: index});
+  }
+
+  handleMouseLeave (index) {
+    if (this.state.hoveredFlake === index) {
+      this.setState({hoveredFlake: null});
+    }
+  }
+
+  mySnowflakes (flakes) {
+    if (!this.props.firebase.auth().currentUser) {
+      return (
+        <span>Log in to view your snowflakes.</span>
+      );
+    }
+    if (flakes.length > 0) {
       return (
         <div>
           <h2>Your Snowflakes</h2>
-          <span>This feature is not completed yet.</span>
+          {
+            flakes.map((flake, index) => {
+              return (
+                <div key={index} style={{position: "relative", height: `${this.height}px`, width: `${this.width}px`, display: "inline-block"}} onMouseEnter={() => this.handleMouseEnter(index)} onMouseLeave={() => this.handleMouseLeave(index)}>
+                  {this.state.hoveredFlake === index ? <UserFlake width={this.width} height={this.height} flakeKey={flake.key}/> : ""}
+                  <img alt="your flake" className="flake-thumb" src={flake.child("image").val()} height={`${this.height}px`} width={`${this.width}px`} style={{position: "relative"}}/>
+                </div>
+              );
+            })
+          }
         </div>
       );
     } else {
       return (
-        <span>Please log in to view your snowflakes.</span>
+        <span>You don't have any snowflakes yet.</span>
       );
     }
   }
 
-  publicSnowflakes () {
-    if (this.state.publicFlakes.length === 0) {
+  publicSnowflakes (flakes) {
+    if (flakes.length === 0) {
       return (
         <span>Loading snowflakes, or the database is empty...</span>
       );
     } else {
       return (
         <div>
-          <h2>Public Snowflakes</h2>
-          <h4>(actually all snowflakes until I fix it)</h4>
+          <h2>Other Snowflakes</h2>
+          <h3>Click a snowflake to make a copy and start editing it</h3>
           {
-            this.state.publicFlakes.map((flake, index) => {
+            flakes.map((flake, index) => {
               return (
                 <Link to={{pathname: "/make", state: {currentSnowflake: flake.key}}} key={index}>
-                  <img className="flake-thumb" src={flake.child("image").val()} height="200px" width="200px"/>
+                  <img alt="someone's flake" className="flake-thumb" src={flake.child("image").val()} height={`${this.height}px`} width={`${this.width}px`}/>
                 </Link>
               );
             })
@@ -66,13 +99,22 @@ class SnowflakeBrowser extends Component {
   }
 
   render () {
+    let userFlakes = [];
+    let otherFlakes = [];
+    this.state.snowflakes.forEach((flake, index) => {
+      if (this.props.firebase.auth().currentUser && flake.child("user").val() === this.props.firebase.auth().currentUser.uid) {
+        userFlakes.push(flake);
+      } else {
+        otherFlakes.push(flake);
+      }
+    })
     return (
       <div>
         <div className="browse-container">
-          {this.mySnowflakes()}
+          {this.mySnowflakes(userFlakes)}
         </div>
         <div className="browse-container">
-          {this.publicSnowflakes()}
+          {this.publicSnowflakes(otherFlakes)}
         </div>
       </div>
     );
