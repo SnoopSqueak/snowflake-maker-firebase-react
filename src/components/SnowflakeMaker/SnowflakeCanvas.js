@@ -21,7 +21,6 @@ class SnowflakeCanvas extends Component {
 
   componentDidMount () {
     this.currentSnowflake = this.props.linkState ? this.props.linkState.currentSnowflake : null;
-    artSupplies.addCurrentBoardToHistory(this.refs.board, this.activateUndo);
     //off screen canvases
     this.createCanvas("shading");
     this.createCanvas("snowflake");
@@ -30,6 +29,7 @@ class SnowflakeCanvas extends Component {
     this.createCanvas("export");
     this.createCanvas("exportBoard");
     if (!this.mouseTracker) this.mouseTracker = new MouseTracker(this.refs.polys, this.refs.board, this.refs.canvas, this.offScreenCanvases, this);
+    this.mouseTracker.handleReset(this.refs.canvas, true);
     document.getElementById("btnSave").addEventListener("click", this.exportImage, false);
     document.getElementById("btnSaveFirebase").addEventListener("click", this.saveFirebase, false);
     this.drawEverything();
@@ -128,8 +128,6 @@ class SnowflakeCanvas extends Component {
     if (!this.props.firebase.auth().currentUser) {
       alert("Please log in to use the database. Only your Google account's unique ID will be stored to the database, not your email or name. Anyone with the UID could find your profile and any public information on it.");
     } else {
-      // hopefully this will prevent the occasional broken snowflake...
-      this.mouseTracker.handleAdd();
       this.drawSnowflake();
       artSupplies.drawExportCanvas(this.offScreenCanvases["export"].getContext('2d'), this.refs.bgCanvas, this.refs.canvas);
       artSupplies.drawExportCanvas(this.offScreenCanvases["exportBoard"].getContext('2d'), null, this.refs.board);
@@ -155,7 +153,6 @@ class SnowflakeCanvas extends Component {
             alert("Error while saving snowflake, check the console for more information.");
             console.log(e);
           };
-          //console.log(snapshot.val().user + " vs " + firebase.auth().currentUser.uid);
           if (snapshot.val().user !== this.props.firebase.auth().currentUser.uid) {
             this.snowflakesRef.push({
               image: imgURL,
@@ -164,7 +161,6 @@ class SnowflakeCanvas extends Component {
               color: this.props.colorIndex
             }).then((res) => {
               this.currentSnowflake = res.key;
-              //console.log(this.currentSnowflake);
               alert("Saved new snowflake!");
             }).catch(errorCallback);
           } else {

@@ -4,12 +4,7 @@
 }
 
 .trans-button {
-    //background-color: Transparent;
-    //background-repeat: no-repeat;
-    //border: none;
-    //cursor:pointer;
-    //overflow: hidden;
-    //outline:none;
+    width: 100%;
     display: block;
     opacity: 0.7;
     height: 50px;

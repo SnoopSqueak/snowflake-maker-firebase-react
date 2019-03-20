@@ -33,8 +33,8 @@ class MouseTracker {
     window.removeEventListener("mousemove", this.handlers["drawing"], false);
   }
 
-  handleReset (displayCanvas) {
-    if (window.confirm('Lose any changes since last save and start a new snowflake?')) {
+  handleReset (displayCanvas, preconfirmed=false) {
+    if (preconfirmed || window.confirm('Lose any changes since last save and start a new snowflake?')) {
       if (this.drawing) {
         //cancelDrawing();
         this.handleAdd();
