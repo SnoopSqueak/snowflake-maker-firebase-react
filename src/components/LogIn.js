@@ -1,16 +1,9 @@
 import React, { Component } from 'react';
-//import './Landing.css';
 
 class LogIn extends Component {
   logOut (evt) {
     this.props.firebase.auth().signOut().then((result) => {
-      //this.uid = null;
-      //this.token = null;
-      //this.props.setUser(null);
-      //document.getElementById("logInStatus").innerText = "(Not logged in)";
-      //document.getElementById("btnLogIn").addEventListener("click", this.logIn, false);
-      //document.getElementById("btnLogIn").removeEventListener("click", this.logOut, false);
-      //document.getElementById("btnLogIn").innerText = "Log in with Google"
+      // success! do nothing
     }).catch((e) => {
       console.log("There was an error while trying to log out. Error object on next line:");
       console.log(e);
@@ -20,17 +13,8 @@ class LogIn extends Component {
   logIn (evt) {
     this.props.firebase.auth().signInWithPopup(this.props.provider).then((result) => {
       // This gives you a Google Access Token. You can use it to access the Google API.
+      //   My app doesn't use it for anything.
       this.token = result.credential.accessToken;
-      // The signed-in user info.
-      //this.user = result.user;
-      //this.uid = result.user.uid;
-      //console.log(result.user);
-      //this.props.setUser(result.user);
-      //document.getElementById("logInStatus").innerText = "(Logged in as: " + this.props.firebase.auth().currentUser.displayName + ")";
-      //document.getElementById("btnLogIn").removeEventListener("click", this.logIn, false);
-      //document.getElementById("btnLogIn").addEventListener("click", this.logOut, false);
-      //document.getElementById("btnLogIn").innerText = "Log out"
-      // ...
     }).catch((error) => {
       // Handle Errors here.
       // var errorCode = error.code;
@@ -57,7 +41,6 @@ class LogIn extends Component {
   }
 
   render () {
-    //console.log(this.props.firebase.auth().currentUser);
     return (
       this.props.user ? this.getLogOutButton() : this.getLogInButton()
     );
@@ -65,5 +48,3 @@ class LogIn extends Component {
 }
 
 export default LogIn;
-
-//<div id="logInStatus" style={{color: "black", textAlign: "center"}}>(Not logged in)</div>

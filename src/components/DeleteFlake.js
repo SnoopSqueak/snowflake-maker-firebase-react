@@ -18,7 +18,7 @@ class DeleteFlake extends Component {
       var img = new Image();
       img.src = snapshot.val().image;
       img.onload = () => {
-        this.refs.canvas.getContext('2d').drawImage(img, 0, 0);
+        this.refs.canvas.getContext('2d').drawImage(img, 0, 0, this.width, this.height);
       }
     });
   }

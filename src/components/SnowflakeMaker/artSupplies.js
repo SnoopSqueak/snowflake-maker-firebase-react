@@ -218,14 +218,6 @@ export default (() => {
       exportCanvasContext.drawImage(displayBackgroundCanvas, 0,0,displayBackgroundCanvas.width,displayBackgroundCanvas.height,0,0,displayBackgroundCanvas.width,displayBackgroundCanvas.height);
     }
     exportCanvasContext.drawImage(displayCanvas, 0,0,displayCanvas.width,displayCanvas.height,0,0,displayCanvas.width,displayCanvas.height);
-
-    //add printed url to image
-    // exportCanvasContext.fillStyle = instance.urlColor;
-    // exportCanvasContext.font = 'bold italic 10px Helvetica, Arial, sans-serif';
-    // exportCanvasContext.textBaseline = "top";
-    // var caption = "Made with the paper snowflake maker at www.rectangleworld.com";
-    // var metrics = exportCanvasContext.measureText(caption);
-    // exportCanvasContext.fillText(caption, displayCanvas.width - metrics.width - 20, displayCanvas.height);
   }
 
   instance.changeShading = function (checked, displayCanvas, offScreenCanvases) {
@@ -238,12 +230,9 @@ export default (() => {
     let shadowContext = shadowCanvas.getContext('2d');
     let displayContext = displayCanvas.getContext('2d');
     if (checked) {
-      //if (!instance.shading) {
-        instance.drawShadedSnowflakeToBuffer(shadingCanvas, bufferContext, snowflakeContext);
-        instance.makeShadow(snowflakeContext, shadowContext);
-        instance.shading = true;
-      //}
-      //clearDisplay();
+      instance.drawShadedSnowflakeToBuffer(shadingCanvas, bufferContext, snowflakeContext);
+      instance.makeShadow(snowflakeContext, shadowContext);
+      instance.shading = true;
       displayContext.clearRect(-1, -1, displayCanvas.width+2, displayCanvas.height+2);
       displayContext.drawImage(shadowCanvas,
                   0, 0, displayCanvas.width, displayCanvas.height,
@@ -252,7 +241,6 @@ export default (() => {
                     0, 0, displayCanvas.width, displayCanvas.height,
                     0, 0, displayCanvas.width, displayCanvas.height);
     } else {
-      //clearDisplay();
       displayContext.clearRect(-1, -1, displayCanvas.width+2, displayCanvas.height+2);
       displayContext.drawImage(shadowCanvas,
                   0, 0, displayCanvas.width, displayCanvas.height,
@@ -305,26 +293,13 @@ export default (() => {
       }
       instance.historyLength = instance.historyLength - 1;
     }
-    //setUndoButtonInactive();
   }
 
   instance.undo = function (boardCanvas, displayCanvas, offScreenCanvases, setUndoButtonInactive) {
-    // if (clearDrawingBoard) {
-    //   //first clear board of any active lines
-    //   polygonLayerContext.clearRect(-1,-1,boardWidth+2,boardHeight+2);
-    // }
-    //
-    // if (drawing) {
-    //   cancelDrawing();
-    //   return;
-    // }
     if (instance.historyLength === 1) {
       //this means the board still has a blank triangle
       return;
     }
-
-    //first history state will be copy of current so remove it
-    //instance.history.first.canvas = null;
     instance.history.first.canvas.getContext('2d').clearRect(0, 0, instance.history.first.canvas.width, instance.history.first.canvas.height);
     instance.history.first.next.prev = null;
     instance.history.first = instance.history.first.next;
@@ -341,8 +316,6 @@ export default (() => {
     if (instance.autoUpdate) {
       instance.drawSnowflake(boardCanvas, displayCanvas, offScreenCanvases);
     }
-
-    //instance.shading = false;
   }
 
   instance.updatePolygonDrawing = function (ctx, width, height, dots, mouseX, mouseY) {
@@ -429,8 +402,6 @@ export default (() => {
     instance.drawPolygonToBoard(board, dots);
     //store history
     instance.addCurrentBoardToHistory(board.canvas, activateUndo);
-
-    //instance.shading = false;
     if (instance.autoUpdate) {
       instance.drawSnowflake(board.canvas, displayCanvas, offScreenCanvases);
     }

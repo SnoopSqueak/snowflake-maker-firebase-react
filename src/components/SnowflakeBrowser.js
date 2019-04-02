@@ -9,8 +9,8 @@ class SnowflakeBrowser extends Component {
     this.state = {
       snowflakes: []
     }
-    this.width = 200;
-    this.height = 200;
+    this.width = 100;
+    this.height = 100;
     this.snowflakesRef = this.props.firebase.database().ref('snowflakes');
     this.snowflakeAdded = this.snowflakeAdded.bind(this);
     this.userFlakeCanvas = document.createElement('canvas');
@@ -60,7 +60,7 @@ class SnowflakeBrowser extends Component {
               return (
                 <div key={index} style={{position: "relative", height: `${this.height}px`, width: `${this.width}px`, display: "inline-block"}} onMouseEnter={() => this.handleMouseEnter(index)} onMouseLeave={() => this.handleMouseLeave(index)}>
                   {this.state.hoveredFlake === index ? <UserFlake width={this.width} height={this.height} flakeKey={flake.key}/> : ""}
-                  <img alt="your flake" className="flake-thumb" src={flake.child("image").val()} height={`${this.height}px`} width={`${this.width}px`} style={{position: "relative"}}/>
+                  <img alt="your flake" className="flake-thumb" src={flake.child("image").val()} height={`${this.height/2}px`} width={`${this.width/2}px`} style={{position: "relative", transform: "translate(0, 25px) scale(2, 2)"}}/>
                 </div>
               );
             })
@@ -87,8 +87,8 @@ class SnowflakeBrowser extends Component {
           {
             flakes.map((flake, index) => {
               return (
-                <Link to={{pathname: "/make", state: {currentSnowflake: flake.key}}} key={index}>
-                  <img alt="someone's flake" className="flake-thumb" src={flake.child("image").val()} height={`${this.height}px`} width={`${this.width}px`}/>
+                <Link to={{pathname: "/make", state: {currentSnowflake: flake.key}}} key={index}  style={{position: "relative", height: `${this.height}px`, width: `${this.width}px`, display: "inline-block"}}>
+                  <img alt="someone's flake" className="flake-thumb" src={flake.child("image").val()} height={`${this.height/2}px`} width={`${this.width/2}px`} style={{position: "relative", transform: "translate(0, 25px) scale(2, 2)"}}/>
                 </Link>
               );
             })

@@ -84,6 +84,7 @@ class MouseTracker {
     if (clearDrawingBoard) {
       //first clear board of any active lines
       this.canvas.getContext('2d').clearRect(-1,-1,this.canvas.width+2,this.canvas.height+2);
+      this.dots = [];
     }
 
     if (this.drawing) {

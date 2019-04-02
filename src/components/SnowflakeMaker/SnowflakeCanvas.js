@@ -129,6 +129,10 @@ class SnowflakeCanvas extends Component {
       alert("Please log in to use the database. Only your Google account's unique ID will be stored to the database, not your email or name. Anyone with the UID could find your profile and any public information on it.");
     } else {
       this.drawSnowflake();
+      // Make the image export canvas half the size of the others
+      this.offScreenCanvases["export"].width = this.width/2;
+      this.offScreenCanvases["export"].height = this.height/2;
+      this.offScreenCanvases["export"].getContext('2d').scale(.5, .5);
       artSupplies.drawExportCanvas(this.offScreenCanvases["export"].getContext('2d'), this.refs.bgCanvas, this.refs.canvas);
       artSupplies.drawExportCanvas(this.offScreenCanvases["exportBoard"].getContext('2d'), null, this.refs.board);
       var imgURL = this.offScreenCanvases["export"].toDataURL("image/png");
@@ -201,7 +205,7 @@ class SnowflakeCanvas extends Component {
         </div>
         <div id="buttonPanel">
             <div id="titleText" style={{"background": this.props.bgColor.start}}>paper snowflake maker</div>
-            <div id="urlText" style={{"background": this.props.bgColor.textBG || this.props.bgColor.end}}><a href="http://rectangleworld.com">by<br/>RectangleWorld</a></div>
+            <div id="urlText" style={{"background": this.props.bgColor.textBG || this.props.bgColor.end}}><a href="http://rectangleworld.com">Originally by<br/>RectangleWorld</a></div>
             <div id="urlText2" style={{"background": this.props.bgColor.start}}><a href="http://rectangleworld.com/blog/about" target="_blank" rel="noopener noreferrer">about</a></div>
             <div id="buttonPanelContent">
               <div id="colorButtonsLabel">choose a<br/>background:</div>
